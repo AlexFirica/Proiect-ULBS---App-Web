@@ -1,5 +1,5 @@
 const supabase = require('../config/supabase');
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2'); // Înlocuit bcrypt cu argon2
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/user.model');
@@ -33,6 +33,7 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Email sau parolă incorectă.' });
     }
 
+    // Metoda comparePassword din user.model.js folosește acum argon2 intern
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Email sau parolă incorectă.' });
@@ -152,7 +153,13 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Token invalid sau expirat.' });
     }
 
-    const password_hash = await bcrypt.hash(new_password, 12);
+    // AICI S-A MODIFICAT: Generarea hash-ului folosind Argon2id cu configurări sigure
+    const password_hash = await argon2.hash(new_password, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16, // 64 MB RAM
+      timeCost: 3          // 3 iterații
+    });
+
     await supabase.from('users').update({ password_hash, reset_token: null, reset_token_expires_at: null }).eq('id', user.id);
     await supabase.from('refresh_tokens').update({ is_revoked: true }).eq('user_id', user.id);
 
@@ -171,7 +178,7 @@ const getProfile = async (req, res) => {
   }
 };
 
-// EXPORTUL UNIFICAT - Toate funcțiile sunt acum vizibile pentru rute!
+// EXPORTUL UNIFICAT
 module.exports = {
   register,
   login,

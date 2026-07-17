@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.44.0",
+    "argon2": "^0.44.0",
     "axios": "^1.7.2",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.8.1",
@@ -32,6 +33,7 @@
   "license": "ISC",
   "allowScripts": {
     "bcrypt@6.0.0": true,
-    "msgpackr-extract@3.0.4": true
+    "msgpackr-extract@3.0.4": true,
+    "argon2@0.44.0": true
   }
 }

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2'); // Înlocuit bcrypt cu argon2
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,24 +22,30 @@ const userSchema = new mongoose.Schema(
 // Hook pre-save: Rulează automat înainte de .save()
 userSchema.pre('save', async function (next) {
   // 1. Verificăm dacă parola a fost modificată (sau e nouă).
-  // Dacă utilizatorul își schimbă doar email-ul, nu vrem să facem hash din nou la parola deja criptată!
   if (!this.isModified('password')) return next();
 
   try {
-    // 2. Generăm salt-ul (recomandat un cost de 10-12 runde)
-    const salt = await bcrypt.genSalt(10);
-
-    // 3. Înlocuim parola simplă cu hash-ul securizat
-    this.password = await bcrypt.hash(this.password, salt);
+    // 2 & 3. Înlocuim parola simplă cu hash-ul securizat generat de Argon2id.
+    // Argon2 gestionează intern generarea automată a salt-ului unic (nu mai avem nevoie de genSalt).
+    this.password = await argon2.hash(this.password, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16, // 64 MB RAM (aceeași configurare ca în controller)
+      timeCost: 3          // 3 iterații
+    });
     next();
   } catch (error) {
     next(error);
   }
 });
 
-// Metodă helper: ne va ajuta la logare să comparăm parola introdusă cu cea din baza de date
+// Metodă helper: ne ajută la logare să comparăm parola introdusă cu cea din baza de date
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    // argon2.verify compară textul simplu cu hash-ul stocat și returnează automat true sau false
+    return await argon2.verify(this.password, candidatePassword);
+  } catch (error) {
+    return false;
+  }
 };
 
 const User = mongoose.model('User', userSchema);
