@@ -378,3 +378,21 @@ btn.onclick=function(){
   
 
 }
+// Logare
+const login_button=document.getElementById('login-submit');
+
+login_button.onclick=function(){
+  const email_login = document.getElementById('login-email');
+const password_login = document.getElementById('login-pass');
+const login_attempt={
+    email:email_login.value,
+    password:password_login.value
+}  
+fetch('http://localhost:3000/login', {
+  method:"POST",
+  headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify(login_attempt)
+})
+}
