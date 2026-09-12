@@ -13,7 +13,7 @@ const pool = new pg.Pool({
 });
 app.use(cors());
 app.use(express.json());
-
+app.use(express.static('public'));
 app.post("/post-sign-up", async(req,res)=>{
     try{
         const new_sign_up=req.body;

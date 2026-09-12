@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeEdu - Dashboard</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">CodeEdu</span>
+      </div>
+
+      <div class="plan-card">
+        <span class="plan-badge">Planul tău</span>
+        <h4>Classroom Gratuit</h4>
+        <p>Ai acces la toate funcționalitățile pentru profesori.</p>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="#" class="nav-item active">
+          <span class="icon">🏠</span> Dashboard
+        </a>
+        <a href="#" class="nav-item">
+          <span class="icon">💬</span> Mesaje
+        </a>
+        <a href="#" class="nav-item">
+          <span class="icon">📅</span> Calendar
+        </a>
+        <a href="#" class="nav-item">
+          <span class="icon">📁</span> Fișierele mele
+        </a>
+        <a href="#" class="nav-item">
+          <span class="icon">⚙️</span> Setări
+        </a>
+      </nav>
+
+      <div class="upgrade-card">
+        <div class="crown-icon">👑</div>
+        <h4>Upgrade pentru elevii tăi</h4>
+        <p>Recomandă Premium elevilor tăi pentru acces complet la cursurile interactive.</p>
+        <button class="btn-upgrade">Află mai multe &rarr;</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-wrapper">
+      
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-header">
+        <div class="top-nav-links">
+          <a href="#" class="top-link active">Dashboard</a>
+          <a href="#" class="top-link">Classrooms</a>
+          <a href="#" class="top-link">Cursuri</a>
+        </div>
+        
+        <div class="user-profile">
+          <button class="bell-btn"></button>
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="content-body">
+        
+        <!-- LEFT/CENTER COLUMN -->
+        <section class="primary-column">
+          <div class="welcome-banner">
+            <h2>Bun venit, 👋</h2>
+            <p>Iată o privire de ansamblu asupra activității tale.</p>
+          </div>
+
+          <!-- CLASSROOMS SECTION HEADER -->
+          <div class="section-header">
+            <h3>Classrooms</h3>
+            <button class="btn-primary">+ Creează classroom</button>
+          </div>
+
+          <!-- EMPTY CLASSROOMS STATE -->
+          <div class="empty-state">
+            <div class="empty-icon">🏫</div>
+            <h4>Nu ai creat niciun classroom încă</h4>
+            <p>Începe prin a crea prima ta clasă pentru a adăuga elevi și teme.</p>
+            <button class="btn-primary">+ Creează primul classroom</button>
+          </div>
+
+          <!-- OVERVIEW STATS -->
+          <div class="overview-section">
+            <h3>Prezentare generală</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-icon icon-green">👥</span>
+                <div>
+                  <h4>0</h4>
+                  <p>Total elevi</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon icon-purple">📚</span>
+                <div>
+                  <h4>0</h4>
+                  <p>Classroom-uri</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon icon-blue">📄</span>
+                <div>
+                  <h4>0</h4>
+                  <p>Teme active</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon icon-orange">📈</span>
+                <div>
+                  <h4>0%</h4>
+                  <p>Rată medie de finalizare</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR COLUMN -->
+        <aside class="secondary-column">
+          
+          <!-- QUICK ACTIONS -->
+          <div class="widget-box">
+            <h4>Acțiuni rapide</h4>
+            <ul class="quick-actions">
+              <li><button class="action-btn">➕ Creează classroom</button></li>
+              <li><button class="action-btn">📝 Adaugă temă</button></li>
+              <li><button class="action-btn">📤 Încarcă material</button></li>
+              <li><button class="action-btn">📅 Vezi calendar</button></li>
+            </ul>
+          </div>
+
+          <!-- CALENDAR / UPCOMING -->
+          <div class="widget-box">
+            <div class="widget-header">
+              <h4>Calendar</h4>
+              <a href="#" class="link-small">Vezi tot</a>
+            </div>
+            <div class="empty-widget-state">
+              <p>Nu ai nicio activitate programată.</p>
+            </div>
+          </div>
+
+          <!-- NEWS / ANNOUNCEMENTS -->
+          <div class="widget-box">
+            <div class="widget-header">
+              <h4>Noutăți de la CodeEdu</h4>
+              <a href="#" class="link-small">Vezi toate</a>
+            </div>
+            
+            </div>
+          </div>
+
+        </aside>
+
+      </main>
+    </div>
+
+  </div>
+  <div id="create-modal" class="modal" hidden>
+  <div class="modal-content">
+    <h3>Creează un classroom</h3>
+    <input type="text" id="class-title" placeholder="Nume Clasă (ex: XII A - Informatică)" required />
+    <textarea id="class-desc" placeholder="Descriere (opțional)"></textarea>
+    <div class="modal-actions">
+      <button id="close-modal-btn">Anulează</button>
+      <button id="save-class-btn">Creează</button>
+    </div>
+  </div>
+</div>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
