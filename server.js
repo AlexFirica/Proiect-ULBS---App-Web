@@ -52,8 +52,13 @@ app.post('/login', async (req, res)=>{
       
     }
     else console.log('Succes');
-
-    return res.status(200).json({ success: true, user: result.user });
+    const userData = {
+      id: result.user.user_id,
+      username: result.user.username,
+      email: result.user.email,
+      role: result.user.role
+    };
+    return res.status(200).json({ success: true, user: userData });
     }catch (error) {
     console.log(`Eroare ${error}`);
     return res.status(500).json({ success: false, message: 'Eroare de server' });
@@ -82,7 +87,47 @@ async function checkuser(email,password){
     throw error;
   }
     }
+app.post('/api/classrooms', async(req, res)=>{
+  const { title, description, teacherId } = req.body;
 
+  // Validate required payload fields
+  if (!title || !teacherId) {
+    return res.status(400).json({ error: 'Numele clasei și ID-ul profesorului sunt obligatorii.' });
+  }
+  const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  const text = `
+    INSERT INTO classrooms (title, description, code, teacher_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *;
+  `;
+  const values = [title, description || '', joinCode, teacherId];
+
+  try {
+    const result = await pool.query(text, values);
+    
+    // Return success response with the newly created classroom object
+    res.status(201).json({
+      success: true,
+      classroom: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error creating classroom:', error);
+    res.status(500).json({ error: 'Eroare de server la salvarea clasei.' });
+  }
+})
+app.get('/api/classrooms/:teacherId', async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const text = 'SELECT * FROM classrooms WHERE teacher_id = $1 ORDER BY id DESC';
+    const result = await pool.query(text, [teacherId]);
+
+    res.status(200).json({ success: true, classrooms: result.rows });
+  } catch (error) {
+    console.error('Error fetching classrooms:', error);
+    res.status(500).json({ error: 'Eroare la preluarea claselor.' });
+  }
+});
 app.listen(Port, () => {
     console.log(`Serverul rulează pe portul ${Port}`);
 });
