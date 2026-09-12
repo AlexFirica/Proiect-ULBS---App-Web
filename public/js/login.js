@@ -5,6 +5,8 @@
 
 'use strict';
 
+
+
 // ── State global ──────────────────────────────────────────
 let currentRole = 'profesor'; // rol activ pe pagina de login
 let suRole      = null;       // rol ales în modal
@@ -381,18 +383,28 @@ btn.onclick=function(){
 // Logare
 const login_button=document.getElementById('login-submit');
 
-login_button.onclick=function(){
+login_button.onclick= async function(event){
+  event.preventDefault();
   const email_login = document.getElementById('login-email');
 const password_login = document.getElementById('login-pass');
 const login_attempt={
     email:email_login.value,
     password:password_login.value
 }  
-fetch('http://localhost:3000/login', {
+const response = await fetch('http://localhost:3000/login', {
   method:"POST",
   headers:{
         "Content-Type":"application/json"
     },
     body:JSON.stringify(login_attempt)
 })
+const data=await response.json();
+if(data.success)
+{
+  localStorage.setItem('user', JSON.stringify(data.user));
+  window.location.href = '/dashboard.html';
+}
+else {
+    alert(data.message || 'Login failed');
+  }
 }
