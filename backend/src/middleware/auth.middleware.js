@@ -1,31 +1,55 @@
 const jwt = require('jsonwebtoken');
 
-// Middleware pentru a verifica dacă utilizatorul este logat (are token JWT valid)
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_temporar_dev_codeedu';
+
 const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Acces neautorizat. Tokenul lipsește.' });
-    }
+  let token = null;
+  const authHeader = req.headers.authorization;
 
-    const token = authHeader.split(' ')[1];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Atașează datele decodate (user_id, role, email) la cerere
-        next();
-    } catch (error) {
-        return res.status(401).json({ message: 'Token invalid sau expirat.' });
-    }
+  if (!token) {
+    return res.status(401).json({ message: 'Acces neautorizat. Tokenul lipsește.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Token invalid sau expirat.' });
+  }
 };
 
-// Middleware pentru autorizare în funcție de rol (teacher / student)
-const requireRole = (role) => {
-    return (req, res, next) => {
-        if (!req.user || req.user.role !== role) {
-            return res.status(403).json({ message: 'Acces interzis. Nu ai permisiunile necesare.' });
-        }
-        next();
-    };
+const requireRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Neautentificat.' });
+    }
+
+    const userRole = req.user.role;
+
+    // Verifică echivalența dintre roluri în limba română și engleză
+    const isAllowed = allowedRoles.some(role => {
+      if ((role === 'student' || role === 'cursant') && (userRole === 'cursant' || userRole === 'student')) return true;
+      if ((role === 'teacher' || role === 'profesor') && (userRole === 'profesor' || userRole === 'teacher')) return true;
+      return role === userRole;
+    });
+
+    if (!isAllowed) {
+      return res.status(403).json({ message: 'Acces interzis. Nu ai permisiunile necesare.' });
+    }
+
+    next();
+  };
 };
 
-module.exports = { authenticateJWT, requireRole };
+module.exports = { 
+  authenticateJWT, 
+  protect: authenticateJWT, // Alias pentru a fi compatibil cu importul { protect }
+  requireRole 
+};

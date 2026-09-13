@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
-const argon2 = require('argon2'); // Înlocuit bcrypt cu argon2
+const argon2 = require('argon2');
 
 const userSchema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      trim: true
+    },
     email: {
       type: String,
       required: [true, 'Adresa de email este obligatorie.'],
@@ -14,36 +18,43 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Parola este obligatorie.'],
       minlength: [6, 'Parola trebuie să aibă cel puțin 6 caractere.']
-    }
+    },
+    role: {
+      type: String,
+      default: 'cursant'
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    verificationToken: String,
+    resetToken: String,
+    resetTokenExpires: Date,
+    refreshToken: String
   },
   { timestamps: true }
 );
 
-// Hook pre-save: Rulează automat înainte de .save()
-userSchema.pre('save', async function (next) {
-  // 1. Verificăm dacă parola a fost modificată (sau e nouă).
-  if (!this.isModified('password')) return next();
+// Hook pre-save async: FĂRĂ parametrul `next()`
+userSchema.pre('save', async function () {
+  // Dacă parola nu a fost modificată, ieșim direct
+  if (!this.isModified('password')) return;
 
-  try {
-    // 2 & 3. Înlocuim parola simplă cu hash-ul securizat generat de Argon2id.
-    // Argon2 gestionează intern generarea automată a salt-ului unic (nu mai avem nevoie de genSalt).
-    this.password = await argon2.hash(this.password, {
-      type: argon2.argon2id,
-      memoryCost: 2 ** 16, // 64 MB RAM (aceeași configurare ca în controller)
-      timeCost: 3          // 3 iterații
-    });
-    next();
-  } catch (error) {
-    next(error);
-  }
+  // Generăm hash-ul Argon2id
+  this.password = await argon2.hash(this.password, {
+    type: argon2.argon2id,
+    memoryCost: 2 ** 16,
+    timeCost: 3
+  });
 });
 
-// Metodă helper: ne ajută la logare să comparăm parola introdusă cu cea din baza de date
+// Verificare parolă la login
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
-    // argon2.verify compară textul simplu cu hash-ul stocat și returnează automat true sau false
+    if (!this.password || !candidatePassword) return false;
     return await argon2.verify(this.password, candidatePassword);
   } catch (error) {
+    console.error('Eroare verificare Argon2:', error.message);
     return false;
   }
 };
