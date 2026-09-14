@@ -3,8 +3,20 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/user.model');
 
-// Helper secret JWT
+// Import flexibil (suportă atât export direct, cât și export de tip obiect { supabase })
+const supabaseImport = require('../config/supabase');
+const supabase = supabaseImport.supabase || supabaseImport;
+
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_temporar_dev_codeedu';
+
+// Normalizare roluri (română -> engleză)
+const normalizeRole = (inputRole) => {
+  if (!inputRole) return 'student';
+  const r = inputRole.toLowerCase();
+  if (r === 'cursant' || r === 'student') return 'student';
+  if (r === 'profesor' || r === 'teacher') return 'teacher';
+  return r;
+};
 
 // 1. ÎNREGISTRARE (Signup)
 const register = async (req, res) => {
@@ -12,27 +24,84 @@ const register = async (req, res) => {
     const name = req.body.name || req.body.Name || '';
     const email = req.body.email || req.body.Email;
     const password = req.body.password || req.body.parola;
-    const role = req.body.role || req.body.rol || 'cursant';
+    const rawRole = req.body.role || req.body.rol || 'student';
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Emailul și parola sunt obligatorii.' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const role = normalizeRole(rawRole);
 
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ message: 'Acest email este deja înregistrat.' });
     }
 
+    // A. Înregistrare în Supabase Auth (Creează o intrare validă în auth.users)
+    let supabaseUserId = null;
+
+    try {
+      if (supabase && typeof supabase.auth?.signUp === 'function') {
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password: password,
+          options: {
+            data: { full_name: name, role: role }
+          }
+        });
+
+        if (authError) {
+          console.error('⚠️ Eroare Supabase Auth signUp:', authError.message);
+        } else if (authData?.user) {
+          supabaseUserId = authData.user.id;
+        }
+      }
+    } catch (spAuthErr) {
+      console.error('⚠️ Excepție la conectarea cu Supabase Auth:', spAuthErr.message);
+    }
+
+    // B. Salvare în MongoDB
     const newUser = new User({
       name,
       email: normalizedEmail,
       password,
-      role
+      role,
+      supabaseId: supabaseUserId
     });
 
     await newUser.save();
+    console.log('✅ Utilizator salvat în MongoDB cu ID-ul:', newUser._id);
+
+    // C. Salvare în tabela profiles din Supabase (Dacă avem ID valid din auth.users)
+    // C. Salvare cu UPSERT în Supabase Profiles
+if (supabaseUserId && typeof supabase.from === 'function') {
+  try {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert([
+        { 
+          id: supabaseUserId,
+          full_name: name,
+          email: normalizedEmail,
+          role: role
+        }
+      ], { onConflict: 'id' });
+
+    if (profileError) {
+      console.error('⚠️ Eroare salvare tabela profiles:', profileError.message);
+    } else {
+      if (role === 'teacher') {
+        await supabase.from('teacher_profiles').upsert([{ id: supabaseUserId }], { onConflict: 'id' });
+      } else {
+        await supabase.from('student_profiles').upsert([{ id: supabaseUserId }], { onConflict: 'id' });
+      }
+      console.log('✅ Profil sincronizat cu succes în Supabase!');
+    }
+  } catch (profileErr) {
+    console.error('⚠️ Excepție la inserarea în profiles:', profileErr.message);
+  }
+}
 
     return res.status(201).json({ message: 'Utilizator înregistrat cu succes!' });
   } catch (error) {
@@ -63,19 +132,25 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Email sau parolă incorectă.' });
     }
 
-    // Generare Access Token (JWT) - 15 minute
+    const userRole = normalizeRole(user.role);
+
+    // Access Token (JWT)
     const accessToken = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role || 'cursant' },
+      { 
+        id: user._id, 
+        userId: user._id, 
+        supabaseId: user.supabaseId,
+        email: user.email, 
+        role: userRole 
+      },
       JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '24h' }
     );
 
-    // Generare și salvare Refresh Token în MongoDB
     const refreshToken = crypto.randomUUID();
     user.refreshToken = refreshToken;
     await user.save();
 
-    // Setare cookie HTTP-Only pentru Refresh Token
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -86,7 +161,13 @@ const login = async (req, res) => {
     return res.status(200).json({
       message: 'Logare reușită!',
       token: accessToken,
-      user: { id: user._id, email: user.email, role: user.role || 'cursant', name: user.name || '' }
+      user: { 
+        id: user._id, 
+        supabaseId: user.supabaseId,
+        email: user.email, 
+        role: userRole, 
+        name: user.name || '' 
+      }
     });
   } catch (error) {
     console.error('❌ Eroare la login:', error);
@@ -94,7 +175,7 @@ const login = async (req, res) => {
   }
 };
 
-// 3. Verificare email / Activare cont
+// 3. Verificare email
 const verify = async (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).json({ message: 'Tokenul lipsește.' });
@@ -128,15 +209,22 @@ const refresh = async (req, res) => {
       return res.status(401).json({ message: 'Sesiune invalidă sau expirată.' });
     }
 
-    // Rotire token: generăm un token nou de refresh la fiecare utilizare
     const newRefreshToken = crypto.randomUUID();
     user.refreshToken = newRefreshToken;
     await user.save();
 
+    const userRole = normalizeRole(user.role);
+
     const access_token = jwt.sign(
-      { userId: user._id, role: user.role, email: user.email },
+      { 
+        id: user._id, 
+        userId: user._id, 
+        supabaseId: user.supabaseId,
+        role: userRole, 
+        email: user.email 
+      },
       JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '24h' }
     );
 
     res.cookie('refreshToken', newRefreshToken, {
@@ -195,7 +283,7 @@ const forgotPassword = async (req, res) => {
     if (user) {
       const reset_token = crypto.randomUUID();
       user.resetToken = reset_token;
-      user.resetTokenExpires = Date.now() + 3600000; // 1 oră
+      user.resetTokenExpires = Date.now() + 3600000;
       await user.save();
       console.log(`[Reset] Link generat pentru ${email}: /auth/reset-password?token=${reset_token}`);
     }
@@ -223,10 +311,10 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Token invalid sau expirat.' });
     }
 
-    user.password = new_password; // Se va cripta automat prin hook-ul pre-save din user.model.js
+    user.password = new_password;
     user.resetToken = undefined;
     user.resetTokenExpires = undefined;
-    user.refreshToken = undefined; // Deconectăm sesiunile vechi la schimbarea parolei
+    user.refreshToken = undefined;
     await user.save();
 
     return res.status(200).json({ message: 'Parola a fost resetată cu succes. Te poți loga.' });
@@ -238,7 +326,7 @@ const resetPassword = async (req, res) => {
 // 9. Profil
 const getProfile = async (req, res) => {
   try {
-    res.status(200).json({ message: 'Profilul utilizatorului a fost accesat cu succes!' });
+    res.status(200).json({ message: 'Profilul utilizatorului a fost accesat cu succes!', user: req.user });
   } catch (error) {
     res.status(500).json({ message: 'Eroare la obținerea profilului.', error: error.message });
   }

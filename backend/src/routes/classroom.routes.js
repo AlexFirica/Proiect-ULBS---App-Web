@@ -3,13 +3,13 @@ const router = express.Router();
 const { protect, requireRole } = require('../middleware/auth.middleware');
 const { getClassrooms, createClassroom, joinClassroom } = require('../controllers/classroom.controller');
 
-// 1. Vizualizare clase (Acesibilă pentru toți utilizatorii autentificați)
+// 1. Vizualizare clase (Accesibilă oricărui utilizator logat)
 router.get('/', protect, getClassrooms);
 
 // 2. Creare clasă (Accesibilă profesorilor)
-router.post('/', protect, requireRole('profesor', 'teacher'), createClassroom);
+router.post('/', protect, requireRole('teacher', 'profesor'), createClassroom);
 
-// 3. Înscriere într-o clasă (Accesibilă cursanților/elevilor)
-router.post('/join', protect, requireRole('cursant', 'student'), joinClassroom);
+// 3. Înscriere într-o clasă (Accesibilă elevilor/studenților)
+router.post('/join', protect, requireRole('student', 'cursant'), joinClassroom);
 
 module.exports = router;
