@@ -28,6 +28,23 @@ const homeworkSchema = new mongoose.Schema(
     signature: {
       type: String, // Stochează semnătura digitală ECC
       default: ''
+    },
+    // --- CÂMPURI NOI PENTRU PROGRAMARE ---
+    isCodingTask: {
+      type: Boolean,
+      default: false
+    },
+    testInput: {
+      type: String, // Datele ascunse de intrare (ex: "2 3\n")
+      default: ''
+    },
+    expectedOutput: {
+      type: String, // Rezultatul corect așteptat (ex: "5\n")
+      default: ''
+    },
+    xpReward: {
+      type: Number,
+      default: 10
     }
   },
   {

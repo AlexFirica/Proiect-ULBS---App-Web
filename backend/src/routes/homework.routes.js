@@ -8,4 +8,7 @@ router.get('/:id', homeworkController.getHomeworkById);
 router.put('/:id', homeworkController.updateHomework);
 router.delete('/:id', homeworkController.deleteHomework);
 
+// Adaugă ruta de submitere cod (poți adăuga și middleware-ul de auth)
+router.post('/:id/submit', homeworkController.submitCodeTask);
+
 module.exports = router;

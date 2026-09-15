@@ -1,4 +1,6 @@
 const Homework = require('../models/homework.model');
+const axios = require('axios');
+
 const { 
   encryptAES, 
   decryptAES, 
@@ -152,10 +154,61 @@ const deleteHomework = async (req, res) => {
   }
 };
 
+// 6. Evaluarea codului C++ trimis de elev
+const submitCodeTask = async (req, res) => {
+  try {
+    const { sourceCode } = req.body;
+    const homework = await Homework.findById(req.params.id);
+
+    if (!homework || !homework.isCodingTask) {
+      return res.status(400).json({ message: 'Tema nu există sau nu este un exercițiu de programare.' });
+    }
+
+    // Apelăm API-ul Judge0
+    const judge0Response = await axios.post('https://judge0-ce.p.rapidapi.com/submissions', {
+      language_id: 54, // C++ (GCC 9.2.0)
+      source_code: sourceCode,
+      stdin: homework.testInput,
+      expected_output: homework.expectedOutput
+    }, {
+      params: { base64_encoded: 'false', wait: 'true' },
+      headers: {
+        'X-RapidAPI-Key': process.env.JUDGE0_API_KEY, // Pune cheia în fișierul tău .env
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = judge0Response.data;
+    const isCorrect = result.status.id === 3; // Status 3 = Accepted
+
+    if (isCorrect) {
+      // Aici poți adăuga și logica pentru a updata XP-ul utilizatorului (folosind req.user extras din JWT)
+      return res.status(200).json({
+        success: true,
+        message: "Răspuns corect! Felicitări!",
+        output: result.stdout,
+        xpEarned: homework.xpReward
+      });
+    } else {
+      return res.status(200).json({
+        success: false,
+        message: result.status.description,
+        errorDetails: result.compile_output || result.stderr || "Output incorect."
+      });
+    }
+
+  } catch (error) {
+    res.status(500).json({ message: 'Eroare la evaluarea codului.', error: error.message });
+  }
+};
+
+// Nu uita să adaugi submitCodeTask în module.exports la final!
+
 module.exports = {
   createHomework,
   getAllHomeworks,
   getHomeworkById,
   updateHomework,
-  deleteHomework
+  deleteHomework,
+  submitCodeTask
 };
