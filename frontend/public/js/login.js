@@ -15,7 +15,6 @@ function switchRole(rol) {
   currentRole = rol;
   const isPro = rol === 'profesor';
 
-  // Tab-uri
   const tabProf = document.getElementById('tab-profesor');
   const tabStud = document.getElementById('tab-cursant');
   if (tabProf && tabStud) {
@@ -25,31 +24,25 @@ function switchRole(rol) {
     tabStud.setAttribute('aria-pressed', !isPro);
   }
 
-  // Actualizează clasa de pe body pentru a schimba accentul (verde/albastru)
   document.body.classList.toggle('role-cursant', !isPro);
 
-  // Arată/ascunde GitHub SSO (doar la cursant)
   const github = document.getElementById('login-github');
   if (github) github.style.display = isPro ? 'none' : 'flex';
 
-  // Actualizează câmpul hidden din formular
   const roleInput = document.getElementById('login-role');
   if (roleInput) roleInput.value = rol;
 
-  // Actualizează link-ul "Ai uitat parola?" cu culoarea rolului
   const forgot = document.getElementById('forgot-link');
   if (forgot) {
     forgot.style.color = isPro ? 'var(--blue)' : 'var(--green)';
   }
 
-  // Actualizează link-ul "Înregistrează-te"
   const signupLink = document.getElementById('signup-link');
   if (signupLink) {
     signupLink.style.color = isPro ? 'var(--blue)' : 'var(--green)';
   }
 }
 
-// ── SSO handler (placeholder) ─────────────────────────────
 function handleSso(provider) {
   console.log(`SSO: ${provider} | rol: ${currentRole || suRole}`);
   alert(`Integrare ${provider} — de implementat cu OAuth.`);
@@ -60,15 +53,15 @@ function validateLoginForm() {
   const pass  = document.getElementById('login-pass');
   let valid   = true;
 
-  if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    showFieldError(email, 'err-login-email', 'Introdu o adresă de email validă.');
+  if (!email || !email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    if (email) showFieldError(email, 'err-login-email', 'Introdu o adresă de email validă.');
     valid = false;
   } else {
     clearFieldError(email);
   }
 
-  if (!pass.value) {
-    showFieldError(pass, 'err-login-pass', 'Parola nu poate fi goală.');
+  if (!pass || !pass.value) {
+    if (pass) showFieldError(pass, 'err-login-pass', 'Parola nu poate fi goală.');
     valid = false;
   } else {
     clearFieldError(pass);
@@ -77,7 +70,6 @@ function validateLoginForm() {
   return valid;
 }
 
-// ── Utilities form ────────────────────────────────────────
 function showFieldError(input, errId, msg) {
   input.classList.add('is-invalid');
   const err = document.getElementById(errId);
@@ -102,7 +94,6 @@ function setLoading(btn, loading, label) {
   }
 }
 
-// ── Arată/ascunde parolă ──────────────────────────────────
 function toggleEye(inputId, iconId) {
   const inp  = document.getElementById(inputId);
   const icon = document.getElementById(iconId);
@@ -111,17 +102,15 @@ function toggleEye(inputId, iconId) {
   const isPass = inp.type === 'password';
   inp.type = isPass ? 'text' : 'password';
 
-  // Schimbă iconița (ochi tăiat când e vizibilă)
   icon.innerHTML = isPass
     ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
 // ═══════════════════════════════════════════════════════════
-//  MODAL SIGN-UP
+//   MODAL SIGN-UP
 // ═══════════════════════════════════════════════════════════
 
-// ── Deschide / Închide modal ──────────────────────────────
 function openModal(rol) {
   resetModal();
   const modal = document.getElementById('signupModal');
@@ -138,13 +127,11 @@ function closeModal() {
   resetModal();
 }
 
-// Închide la click pe fundal
 window.addEventListener('click', function (e) {
   const modal = document.getElementById('signupModal');
   if (e.target === modal) closeModal();
 });
 
-// Închide cu Escape
 window.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') closeModal();
 });
@@ -191,7 +178,6 @@ function resetModal() {
   suGoStep(1);
 }
 
-// ── Alegere rol în modal ──────────────────────────────────
 function suPickRole(rol) {
   suRole = rol;
   const isPro = rol === 'profesor';
@@ -212,7 +198,6 @@ function suPickRole(rol) {
   if (n1) n1.disabled = false;
 }
 
-// ── Navigare între pași ───────────────────────────────────
 function suGoStep(n) {
   [1, 2, 3, 4].forEach(i => {
     const pane = document.getElementById('su-pane-' + i);
@@ -250,7 +235,6 @@ function suGoStep(n) {
   }
 }
 
-// ── Validare Pas 2 ────────────────────────────────────────
 function suValidate2() {
   const name    = document.getElementById('su-name').value.trim();
   const email   = document.getElementById('su-email').value.trim();
@@ -278,7 +262,6 @@ function suValidate2() {
   if (nextBtn) nextBtn.disabled = !(name.length >= 2 && emailRe.test(email));
 }
 
-// ── Verificare parolă ─────────────────────────────────────
 const PWD_RULES = [
   { id: 'pr-len',  test: v => v.length >= 8 },
   { id: 'pr-up',   test: v => /[A-Z]/.test(v) },
@@ -325,7 +308,7 @@ function suResetBars(score, color = 'var(--border)') {
   }
 }
 
-// ── Submit Sign-Up ──────────────────────────────────────────
+// ── DOM Loaded ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const suSubmitBtn = document.getElementById('su-submit');
 
@@ -359,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(suSubmitBtn, false, 'Creează contul');
 
         if (response.ok) {
-          suGoStep(4); // Pasul de succes
+          suGoStep(4);
         } else {
           alert(data.message || 'Eroare la crearea contului.');
         }
@@ -371,20 +354,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // ── Submit Login ────────────────────────────────────────────
-  const loginForm = document.getElementById('login-form');
+  // ── Submit Login pe baza butonului (Oprește orice refresh de pagină) ──
+  const loginBtn = document.getElementById('login-submit');
 
-  if (loginForm) {
-    loginForm.addEventListener('submit', async function (event) {
+  if (loginBtn) {
+    loginBtn.addEventListener('click', async function (event) {
       event.preventDefault();
 
       if (!validateLoginForm()) return;
 
-      const btn = document.getElementById('login-submit');
       const email_login = document.getElementById('login-email');
       const password_login = document.getElementById('login-pass');
 
-      setLoading(btn, true, 'Se verifică...');
+      setLoading(loginBtn, true, 'Se verifică...');
 
       try {
         const response = await fetch('/api/auth/login', {
@@ -399,15 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const data = await response.json();
-        setLoading(btn, false, 'Intră în cont');
+        setLoading(loginBtn, false, 'Intră în cont');
 
         if (response.ok) {
-          // ✅ SALVARE TOKEN JWT ÎN LOCALSTORAGE (Esențial pentru ca dashboard.js să îl trimită)
           if (data.token) {
             localStorage.setItem('token', data.token);
           }
           
-          // Salvare detalii utilizator
           localStorage.setItem('user', JSON.stringify(data.user || data));
 
           // Redirecționare către Dashboard
@@ -416,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
           alert(data.message || 'Autentificare eșuată!');
         }
       } catch (error) {
-        setLoading(btn, false, 'Intră în cont');
+        setLoading(loginBtn, false, 'Intră în cont');
         console.error('Eroare conectare la backend:', error);
         alert('Nu se poate realiza conexiunea cu serverul Node.js.');
       }

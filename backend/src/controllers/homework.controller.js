@@ -8,20 +8,35 @@ const {
   verifySignatureECC 
 } = require('../Utils/cryptoUtils'); // Ajustează calea după caz
 
-// 1. Creează o temă nouă (Criptare AES + Semnare ECC)
+// 1. Creează o temă nouă (Criptare AES + Semnare ECC + Asignare Classroom)
 const createHomework = async (req, res) => {
   try {
-    const { title, description, dueDate, subject } = req.body;
+    const { 
+      title, 
+      description, 
+      dueDate, 
+      subject, 
+      classroomId,     // <-- Preluăm ID-ul clasei din cerere
+      isCodingTask,    // <-- Flag pentru exercițiu de programare
+      testInput,       // <-- Datele ascunse de input pentru cin
+      expectedOutput,  // <-- Output-ul așteptat
+      xpReward         // <-- Punctele XP oferite
+    } = req.body;
 
     if (!title || !dueDate) {
       return res.status(400).json({ message: 'Titlul și data limită sunt obligatorii.' });
+    }
+
+    if (!classroomId) {
+      return res.status(400).json({ message: 'ID-ul clasei (classroomId) este obligatoriu pentru a crea o temă.' });
     }
 
     // Criptăm descrierea cu AES-256-GCM
     const encryptedDescription = encryptAES(description);
 
     // Generăm semnătura ECC pe baza datelor importante ale temei
-    const payloadToSign = `${title}-${encryptedDescription}-${dueDate}`;
+    // Important: Includem și classroomId în șirul semnat pentru a proteja integritatea clasei!
+    const payloadToSign = `${title}-${encryptedDescription}-${dueDate}-${classroomId}`;
     const signature = signDataECC(payloadToSign);
 
     const newHomework = new Homework({
@@ -29,12 +44,18 @@ const createHomework = async (req, res) => {
       description: encryptedDescription,
       dueDate,
       subject,
-      signature
+      classroomId, // <-- Salvăm legătura cu clasa
+      signature,
+      isCodingTask: isCodingTask !== undefined ? isCodingTask : true, // Implicit e task de cod
+      testInput: testInput || "",
+      expectedOutput: expectedOutput || "",
+      xpReward: xpReward || 10
     });
 
     const savedHomework = await newHomework.save();
     res.status(201).json(savedHomework);
   } catch (error) {
+    console.error("Eroare la crearea temei:", error);
     res.status(500).json({ message: 'Eroare la crearea temei.', error: error.message });
   }
 };
@@ -155,6 +176,7 @@ const deleteHomework = async (req, res) => {
 };
 
 // 6. Evaluarea codului C++ trimis de elev
+// 6. Evaluarea codului (Mod Simulat pentru Testare)
 const submitCodeTask = async (req, res) => {
   try {
     const { sourceCode } = req.body;
@@ -164,44 +186,59 @@ const submitCodeTask = async (req, res) => {
       return res.status(400).json({ message: 'Tema nu există sau nu este un exercițiu de programare.' });
     }
 
-    // Apelăm API-ul Judge0
-    const judge0Response = await axios.post('https://judge0-ce.p.rapidapi.com/submissions', {
-      language_id: 54, // C++ (GCC 9.2.0)
-      source_code: sourceCode,
-      stdin: homework.testInput,
-      expected_output: homework.expectedOutput
-    }, {
-      params: { base64_encoded: 'false', wait: 'true' },
-      headers: {
-        'X-RapidAPI-Key': process.env.JUDGE0_API_KEY, // Pune cheia în fișierul tău .env
-        'Content-Type': 'application/json'
-      }
-    });
+    // Afișăm în terminal codul primit pentru a fi siguri că ajunge corect
+    console.log("Cod primit de la elev:\n", sourceCode);
 
-    const result = judge0Response.data;
-    const isCorrect = result.status.id === 3; // Status 3 = Accepted
+    // Simulăm o întârziere de 1 secundă (ca și cum am aștepta un compilator)
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    if (isCorrect) {
-      // Aici poți adăuga și logica pentru a updata XP-ul utilizatorului (folosind req.user extras din JWT)
+    // SIMULARE: Presupunem că programul a rulat perfect și a generat output-ul așteptat
+    const actualOutput = homework.expectedOutput.trim();
+    const expectedOutput = homework.expectedOutput.trim();
+
+    // Returnăm răspunsul către interfață
+    if (actualOutput === expectedOutput) {
       return res.status(200).json({
         success: true,
-        message: "Răspuns corect! Felicitări!",
-        output: result.stdout,
+        message: "Răspuns corect! Felicitări! (Test Simulat)",
+        output: actualOutput,
         xpEarned: homework.xpReward
-      });
-    } else {
-      return res.status(200).json({
-        success: false,
-        message: result.status.description,
-        errorDetails: result.compile_output || result.stderr || "Output incorect."
       });
     }
 
   } catch (error) {
-    res.status(500).json({ message: 'Eroare la evaluarea codului.', error: error.message });
+    console.error("Eroare Backend:", error);
+    res.status(500).json({ message: 'Eroare internă.', error: error.message });
   }
 };
+// 7. Rulare de test (Fără interogarea bazei de date și fără XP)
+const testRunCode = async (req, res) => {
+  try {
+    const { sourceCode, customInput } = req.body;
 
+    if (!sourceCode) {
+      return res.status(400).json({ success: false, message: 'Codul sursă lipsește.' });
+    }
+
+    console.log("Rulare test personalizat. Cod primit:", sourceCode);
+    console.log("Input personalizat:", customInput);
+
+    // Aici poți integra un apel real către Piston API sau poți returna un output simulat detaliat
+    // Exemplu de output detaliat care se va afișa în consolă:
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simulare latență compilator
+
+    const simulatedOutput = `--- REZULTAT TEST PERSONALIZAT ---\nInput folosit:\n${customInput || "(fără input)"}\n\nOutput generat de program:\n(Aici va apărea rezultatul rulării codului tău)`;
+
+    return res.status(200).json({
+      success: true,
+      output: simulatedOutput
+    });
+
+  } catch (error) {
+    console.error("Eroare la testul personalizat:", error);
+    res.status(500).json({ success: false, message: 'Eroare internă de server.' });
+  }
+};
 // Nu uita să adaugi submitCodeTask în module.exports la final!
 
 module.exports = {
@@ -210,5 +247,6 @@ module.exports = {
   getHomeworkById,
   updateHomework,
   deleteHomework,
-  submitCodeTask
+  submitCodeTask,
+  testRunCode
 };

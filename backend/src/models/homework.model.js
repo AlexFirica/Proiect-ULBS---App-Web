@@ -1,3 +1,4 @@
+// models/homework.models.js
 const mongoose = require('mongoose');
 
 const homeworkSchema = new mongoose.Schema(
@@ -8,7 +9,7 @@ const homeworkSchema = new mongoose.Schema(
       trim: true
     },
     description: {
-      type: String, // Va stoca string-ul criptat cu AES (iv:tag:ciphertext)
+      type: String, // Stochează string-ul criptat cu AES (iv:tag:ciphertext)
       default: ''
     },
     dueDate: {
@@ -29,22 +30,26 @@ const homeworkSchema = new mongoose.Schema(
       type: String, // Stochează semnătura digitală ECC
       default: ''
     },
-    // --- CÂMPURI NOI PENTRU PROGRAMARE ---
     isCodingTask: {
       type: Boolean,
       default: false
     },
     testInput: {
-      type: String, // Datele ascunse de intrare (ex: "2 3\n")
+      type: String,
       default: ''
     },
     expectedOutput: {
-      type: String, // Rezultatul corect așteptat (ex: "5\n")
+      type: String,
       default: ''
     },
     xpReward: {
       type: Number,
       default: 10
+    },
+    // Corectat la String pentru compatibilitate cu UUID-urile din Supabase
+    classroomId: {
+      type: String,
+      required: [true, 'ID-ul clasei este obligatoriu.']
     }
   },
   {

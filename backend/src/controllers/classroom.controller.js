@@ -1,12 +1,10 @@
 const supabase = require('../config/supabase');
 const crypto = require('crypto');
+const Homework = require('../models/homework.model'); // Importăm modelul tău de MongoDB pentru teme
 
-// 1. CREARE CLASĂ (POST /api/classrooms)
+// 1. CREARE CLASĂ (POST /api/classrooms) - Neschimbat
 const createClassroom = async (req, res) => {
   try {
-    console.log('📌 Date primite la creare clasă:', req.body);
-    console.log('📌 Utilizator din Token:', req.user);
-
     const { title, name, description } = req.body;
     const classroomName = title || name;
 
@@ -14,17 +12,13 @@ const createClassroom = async (req, res) => {
       return res.status(400).json({ message: 'Numele clasei este obligatoriu.' });
     }
 
-    // Luăm UUID-ul de Supabase sau ID-ul din token
     const teacherId = req.user.supabaseId || req.user.id || req.user.userId;
-
     if (!teacherId) {
       return res.status(400).json({ message: 'Lipsește ID-ul profesorului. Autentifică-te din nou.' });
     }
 
-    // Generăm un cod unic de invitație (ex: A7B9K2)
     const inviteCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
-    // Inserăm în Supabase
     const { data, error } = await supabase
       .from('classrooms')
       .insert([
@@ -38,25 +32,33 @@ const createClassroom = async (req, res) => {
       .select();
 
     if (error) {
-      console.error('❌ EROARE CRITICĂ SUPABASE:', error);
       return res.status(500).json({ message: 'Eroare Supabase la inserare', error: error.message });
     }
 
-    console.log('✅ Clasă salvată cu succes în Supabase:', data);
     return res.status(201).json({ message: 'Clasă creată cu succes!', classroom: data[0] });
 
   } catch (err) {
-    console.error('❌ Excepție server la creare clasă:', err);
     return res.status(500).json({ message: 'Eroare pe server.', error: err.message });
   }
 };
 
-// 2. OBTINERE CLASE (GET /api/classrooms)
+// 2. OBȚINERE CLASE + TEMELE AFERENTE DIN MONGODB (GET /api/classrooms)
 const getClassrooms = async (req, res) => {
   try {
-    const teacherId = req.user.supabaseId || req.user.id || req.user.userId;
+    // Verificăm dacă req.user există. Dacă nu, returnăm o eroare clară sau un array gol
+    if (!req.user) {
+      return res.status(401).json({ message: 'Utilizator neautentificat în sesiune.' });
+    }
 
-    const { data, error } = await supabase
+    // Preluăm ID-ul în siguranță, acoperind toate variantele posibile din token
+    const teacherId = req.user.supabaseId || req.user.id || req.user.userId || req.user._id;
+
+    if (!teacherId) {
+      return res.status(400).json({ message: 'Lipsește ID-ul utilizatorului din token.' });
+    }
+
+    // 1. Luăm clasele din Supabase filtrate după profesor
+    const { data: classrooms, error } = await supabase
       .from('classrooms')
       .select('*')
       .eq('teacher_id', teacherId);
@@ -66,18 +68,32 @@ const getClassrooms = async (req, res) => {
       return res.status(500).json({ message: 'Eroare la citirea claselor.', error: error.message });
     }
 
-    return res.status(200).json(data || []);
+    if (!classrooms || classrooms.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // 2. Pentru fiecare clasă din Supabase, căutăm în MongoDB temele aferente
+    const classroomsWithHomeworks = await Promise.all(
+      classrooms.map(async (cls) => {
+        const homeworks = await Homework.find({ classroomId: cls.id.toString() });
+        return {
+          ...cls,
+          homeworks: homeworks
+        };
+      })
+    );
+
+    return res.status(200).json(classroomsWithHomeworks);
   } catch (err) {
-    console.error('❌ Excepție server la citire clase:', err);
+    console.error('❌ Excepție server la citire clase + teme:', err);
     return res.status(500).json({ message: 'Eroare server.', error: err.message });
   }
 };
 
-// 3. ÎNSCRIERE ÎN CLASĂ (POST /api/classrooms/join)
+// 3. ÎNSCRIERE ÎN CLASĂ (POST /api/classrooms/join) - Neschimbat
 const joinClassroom = async (req, res) => {
   try {
     const { invite_code } = req.body;
-    const studentId = req.user.supabaseId || req.user.id || req.user.userId;
 
     if (!invite_code) {
       return res.status(400).json({ message: 'Codul de invitație este obligatoriu.' });

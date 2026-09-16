@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CodeEdu - Dashboard</title>
+  <title>Codero - Dashboard</title>
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
     <aside class="sidebar">
       <div class="logo-section">
         <span class="logo-icon">&lt;/&gt;</span>
-        <span class="logo-text">CodeEdu</span>
+        <span class="logo-text">Codero</span>
       </div>
 
       <div class="plan-card">
@@ -38,11 +38,8 @@
         <a href="#" class="nav-item">
           <span class="icon">⚙️</span> Setări
         </a>
-        <a href="#" class="nav-item">
-          <span class="icon">⚙️</span> Setări
-        </a> <!-- Adaugă butonul de compilator aici -->
         <button id="open-editor-btn" class="nav-item" style="width: 100%; text-align: left; background: #4f46e5; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; padding: 12px 16px; font-weight: bold;">
-          <span class="icon">💻</span> Compilator C++
+          <span class="icon">💻</span> Compilator C++ (Mod Liber)
         </button>
       </nav>
 
@@ -177,27 +174,61 @@
 
   </div>
 
-  <!-- MODAL EDITOR DE COD (MONACO) -->
-  <div id="editor-modal" class="modal" hidden style="background-color: rgba(0,0,0,0.7);">
-    <div class="modal-content" style="max-width: 900px; width: 90%; height: 85vh; display: flex; flex-direction: column; background: #fff; border-radius: 12px; padding: 20px;">
+  <!-- MODAL EDITOR DE COD (MONACO - Stil LeetCode pe 2 coloane) -->
+  <div id="editor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; width: 90%; height: 85%; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
       
-      <!-- Antet Modal -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin: 0;">💻 Rezolvă exercițiul</h3>
-        <button type="button" id="close-editor-btn" class="btn-secondary" style="border: none; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; cursor: pointer;">Închide</button>
+      <!-- Header Modal -->
+      <div style="background: #1e293b; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="modal-homework-title" style="margin: 0; font-size: 18px;">💻 Editor C++ - Evaluare Temă</h3>
+        <button id="close-editor-btn" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
       </div>
 
-      <!-- Zona Editorului Monaco -->
-      <div id="monaco-container" style="flex-grow: 1; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; min-height: 300px;"></div>
-      
-      <!-- Zona de acțiuni și Consolă -->
-      <div style="margin-top: 15px;">
-        <button id="run-code-btn" class="btn-primary" style="background-color: #10b981; border: none; padding: 10px 20px; border-radius: 6px; color: white; font-weight: bold; cursor: pointer;">
-          ▶ Trimite și Rulează
-        </button>
+      <!-- Corpul Principal: Împărțit în 2 Coloane -->
+      <div style="display: flex; flex: 1; overflow: hidden;">
+        
+        <!-- COLOANA STÂNGA: Editorul Monaco (Codul C++) -->
+        <div style="flex: 1; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0;">
+          <div style="background: #f8fafc; padding: 8px 15px; font-size: 13px; font-weight: bold; color: #64748b; border-bottom: 1px solid #e2e8f0;">
+            Editor Cod (C++)
+          </div>
+          <div id="monaco-container" style="flex: 1; width: 100%;"></div>
+        </div>
+
+        <!-- COLOANA DREAPTA: Cerință, Input personalizat și Consolă -->
+        <div style="width: 420px; display: flex; flex-direction: column; background: #f8fafc; overflow-y: auto; padding: 15px; gap: 15px;">
+          
+          <!-- Detalii Temă (Cerinte luate din MongoDB) -->
+          <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <h4 id="homework-title-text" style="margin: 0 0 8px 0; color: #1e293b; font-size: 15px;">Mod Liber (Sandbox)</h4>
+            <p id="homework-desc-text" style="margin: 0; color: #475569; font-size: 13px; line-height: 1.4;">Poți rula orice cod dorești. Pentru trimitere oficială, selectează o temă din Classroom.</p>
+          </div>
+
+          <!-- Caseta pentru Date de Intrare (Custom Input) -->
+          <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <label for="custom-input" style="font-weight: bold; font-size: 13px; color: #1e293b; display: block; margin-bottom: 5px;">
+              🧪 Date de intrare (Custom Input):
+            </label>
+            <textarea id="custom-input" rows="3" placeholder="Scrie numerele pentru test (ex: 10 15)..." style="width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; padding: 8px; font-family: monospace; font-size: 12px; resize: vertical; box-sizing: border-box;"></textarea>
+            
+            <!-- Butoane de Acțiune -->
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button id="test-code-btn" style="flex: 1; background-color: #3b82f6; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">
+                Testează
+              </button>
+              <button id="submit-code-btn" style="flex: 1; background-color: #10b981; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">
+                Trimite Final
+              </button>
+            </div>
+          </div>
+
+          <!-- Consola de Rezultate / Output -->
+          <div style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; flex: 1; min-height: 120px; overflow-y: auto; white-space: pre-wrap;" id="editor-console">
+// Aici vor apărea rezultatele execuției...
+          </div>
+
+        </div>
       </div>
-      
-      <div id="editor-console" style="background: #1e293b; color: #10b981; padding: 15px; margin-top: 15px; height: 120px; overflow-y: auto; font-family: monospace; border-radius: 8px; font-size: 14px; white-space: pre-wrap;">Aștept codul tău...</div>
 
     </div>
   </div>
@@ -215,78 +246,231 @@
     </div>
   </div>
 
-  <!-- ✅ FIX CALE SCRIPT JS -->
+  <!-- SCRIPTS -->
   <script src="/js/dashboard.js"></script>
-  <!-- Script pentru Monaco Editor -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
   <script>
+    let monacoEditorInstance = null;
+    let currentActiveHomeworkId = null; // Reține ID-ul temei selectate din clasă
+
     document.addEventListener('DOMContentLoaded', () => {
       const openEditorBtn = document.getElementById('open-editor-btn');
       const closeEditorBtn = document.getElementById('close-editor-btn');
       const editorModal = document.getElementById('editor-modal');
-      const runCodeBtn = document.getElementById('run-code-btn');
+      
+      const testCodeBtn = document.getElementById('test-code-btn');
+      const submitCodeBtn = document.getElementById('submit-code-btn');
+      const customInput = document.getElementById('custom-input');
       const editorConsole = document.getElementById('editor-console');
       
-      let monacoEditorInstance = null;
+      const homeworkTitleText = document.getElementById('homework-title-text');
+      const homeworkDescText = document.getElementById('homework-desc-text');
 
-      // Funcție pentru deschiderea modalului
+      // 1. Deschidere mod general (Sandbox) din meniul lateral
       openEditorBtn.addEventListener('click', () => {
-        editorModal.removeAttribute('hidden');
-        editorModal.style.display = 'flex'; // Asigură centrarea pe ecran
-        
-        // Inițializăm Monaco doar dacă nu a fost deja creat
-        if (!monacoEditorInstance) {
-          require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
-          require(['vs/editor/editor.main'], function() {
-            monacoEditorInstance = monaco.editor.create(document.getElementById('monaco-container'), {
-              value: '#include <iostream>\nusing namespace std;\n\nint main() {\n    // Scrie codul tau aici\n    \n    return 0;\n}',
-              language: 'cpp',
-              theme: 'vs-dark',
-              automaticLayout: true,
-              fontSize: 16
-            });
-          });
-        }
+        currentActiveHomeworkId = null; // Resetăm tema activă (mod liber)
+        homeworkTitleText.innerText = "Mod Liber (Sandbox)";
+        homeworkDescText.innerText = "Poți scrie și testa orice cod dorești. Trimiterea oficială este dezactivată în acest mod.";
+        editorModal.style.display = 'flex';
+        initMonaco();
       });
 
-      // Funcție pentru închiderea modalului
+      // 2. Închidere modal
       closeEditorBtn.addEventListener('click', () => {
-        editorModal.setAttribute('hidden', 'true');
         editorModal.style.display = 'none';
       });
 
-      // Funcția apelată când elevul dă click pe "Trimite și Rulează"
-      runCodeBtn.addEventListener('click', async () => {
+      // 3. Testare personalizată (Cu input-ul scris de elev)
+      testCodeBtn.addEventListener('click', async () => {
         if (!monacoEditorInstance) return;
-        
         const code = monacoEditorInstance.getValue();
-        editorConsole.style.color = "#f59e0b"; // Portocaliu de "loading"
-        editorConsole.innerText = "Se evaluează pe server...";
+        const inputData = customInput.value;
+
+        editorConsole.style.color = "#38bdf8";
+        editorConsole.innerText = "⏳ Se compilează și se rulează testul...";
 
         try {
-          // Aici vom face apelul către backend-ul tău Node.js (homework.controller.js)
-          /* 
-          const response = await fetch('/api/homeworks/1/submit', {
+          const response = await fetch('/api/homeworks/test-run', {
             method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sourceCode: code, customInput: inputData })
+          });
+          
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            editorConsole.style.color = "#4ade80";
+            editorConsole.innerText = `✅ Test finalizat cu succes!\n\n${result.output}`;
+          } else {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = `❌ Eroare de execuție:\n${result.message || 'Verifică sintaxa codului.'}`;
+          }
+        } catch (error) {
+          editorConsole.style.color = "#f87171";
+          editorConsole.innerText = "❌ Eroare gravă de conexiune cu serverul.";
+        }
+      });
+
+      // 4. Trimitere Finală (Verificare automată + XP pentru teme)
+      submitCodeBtn.addEventListener('click', async () => {
+        if (!monacoEditorInstance) return;
+        
+        if (!currentActiveHomeworkId) {
+          alert("Ești în Modul Liber (Sandbox). Pentru a trimite o temă oficială și a câștiga XP, deschide editorul dintr-o temă din Classroom!");
+          return;
+        }
+
+        const code = monacoEditorInstance.getValue();
+        editorConsole.style.color = "#facc15";
+        editorConsole.innerText = "⏳ Se evaluează soluția oficială pe server...";
+
+        try {
+          const response = await fetch(`/api/homeworks/${currentActiveHomeworkId}/submit`, {
+            method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sourceCode: code })
           });
           const result = await response.json();
-          // ... logica de afișare rezultat ...
-          */
-          
-          // Simulare răspuns pentru moment:
-          setTimeout(() => {
-            editorConsole.style.color = "#10b981"; // Verde de succes
-            editorConsole.innerText = "✅ Codul a fost trimis către API-ul Judge0 (Așteaptă implementarea backend-ului).";
-          }, 1000);
 
+          if (response.ok && result.success) {
+            editorConsole.style.color = "#4ade80";
+            editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
+            alert(`Felicitări! Ai primit ${result.xpEarned} XP!`);
+          } else {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = `❌ ${result.message}\n\n[Detalii]\n${result.errorDetails || 'Verifică codul.'}`;
+          }
         } catch (error) {
-          editorConsole.style.color = "#ef4444"; // Roșu de eroare
-          editorConsole.innerText = "❌ Eroare de rețea. Backend-ul nu răspunde.";
+          editorConsole.style.color = "#f87171";
+          editorConsole.innerText = "❌ Eroare de conexiune cu serverul.";
         }
       });
+
+      // Încărcăm clasele la pornirea paginii
+      loadClassrooms();
     });
+
+    // Funcție separată pentru inițializarea Monaco Editor
+    function initMonaco() {
+      if (!monacoEditorInstance) {
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+          monacoEditorInstance = monaco.editor.create(document.getElementById('monaco-container'), {
+            value: '#include <iostream>\n\nusing namespace std;\n\nint main() {\n    // Scrie codul tău aici\n    \n    return 0;\n}',
+            language: 'cpp',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            fontSize: 14
+          });
+        });
+      }
+    }
+
+    // Funcție globală pentru a încărca Classroom-urile din Supabase + Teme din Mongo
+    async function loadClassrooms() {
+  const grid = document.getElementById('classrooms-grid');
+  try {
+    // 🔴 Citim token-ul salvat în localStorage în momentul logării
+    const token = localStorage.getItem('token');
+
+    const res = await fetch('/api/classrooms', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        // 🔴 Trimitem token-ul în antet pentru a fi garantat recunoscut de middleware
+        'Authorization': token ? `Bearer ${token}` : ''
+      }
+    });
+    
+    if (res.status === 401) {
+      console.warn("Utilizatorul nu este autentificat (401). Se redirecționează spre login.");
+      window.location.href = '/login.html';
+      return;
+    }
+
+    const classrooms = await res.json();
+    if (classrooms && classrooms.length > 0) {
+      const emptyState = document.querySelector('.empty-state');
+      if (emptyState) emptyState.style.display = 'none';
+      grid.innerHTML = '';
+
+      classrooms.forEach(cls => {
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.style.cssText = "background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px;";
+        
+        // Asigurăm compatibilitatea id-ului (poate fi cls.id din Supabase sau cls._id din Mongo)
+        const classId = cls.id || cls._id;
+
+        card.innerHTML = `
+          <h4 style="margin: 0; color: #1e293b; font-size: 18px;">📚 ${cls.name || cls.title}</h4>
+          <p style="margin: 0; color: #64748b; font-size: 14px;">${cls.description || 'Fără descriere'}</p>
+          <div style="margin-top: 10px;">
+            <strong>Teme disponibile:</strong>
+            <ul style="padding-left: 20px; margin: 5px 0 0 0;" id="homework-list-${classId}">
+              <!-- Teme injectate dinamic -->
+            </ul>
+          </div>
+        `;
+        grid.appendChild(card);
+
+        const homeworkListUl = document.getElementById(`homework-list-${classId}`);
+        if (cls.homeworks && cls.homeworks.length > 0) {
+          cls.homeworks.forEach(hw => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="#" class="open-hw-btn" data-id="${hw._id}" style="color: #4f46e5; text-decoration: none; font-weight: 500;">📝 ${hw.title} (+${hw.xpReward || 10} XP)</a>`;
+            homeworkListUl.appendChild(li);
+          });
+        } else {
+          homeworkListUl.innerHTML = `<li style="color: #94a3b8; font-size: 13px;">Nicio temă activă.</li>`;
+        }
+      });
+
+      // Atașăm evenimente de click pe teme
+      document.querySelectorAll('.open-hw-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const hwId = e.target.getAttribute('data-id');
+          if (typeof window.openEditorWithHomework === 'function') {
+            window.openEditorWithHomework(hwId);
+          }
+        });
+      });
+    }
+  } catch (err) {
+    console.error("Eroare la încărcarea claselor:", err);
+  }
+}
+
+    // Funcție globală pentru deschiderea editorului cu o temă specifică
+    window.openEditorWithHomework = async function(hwId) {
+      currentActiveHomeworkId = hwId; // Setăm ID-ul temei pentru trimiterea finală
+      const editorModal = document.getElementById('editor-modal');
+      const homeworkTitleText = document.getElementById('homework-title-text');
+      const homeworkDescText = document.getElementById('homework-desc-text');
+      
+      editorModal.style.display = 'flex';
+      initMonaco();
+
+      try {
+        const res = await fetch(`/api/homeworks/${hwId}`, { credentials: 'include' });
+        const homeworkData = await res.json();
+        
+        if (res.ok) {
+          homeworkTitleText.innerText = homeworkData.title;
+          homeworkDescText.innerText = homeworkData.description; // Cerința decriptată AES
+        } else {
+          homeworkTitleText.innerText = "Eroare";
+          homeworkDescText.innerText = "Nu s-au putut încărca detaliile temei.";
+        }
+      } catch (e) {
+        homeworkTitleText.innerText = "Eroare de rețea";
+        homeworkDescText.innerText = "Nu s-a putut contacta serverul.";
+      }
+    };
   </script>
 </body>
 </html>

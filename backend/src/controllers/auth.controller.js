@@ -38,9 +38,8 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Acest email este deja înregistrat.' });
     }
 
-    // A. Înregistrare în Supabase Auth (Creează o intrare validă în auth.users)
+    // A. Înregistrare în Supabase Auth
     let supabaseUserId = null;
-
     try {
       if (supabase && typeof supabase.auth?.signUp === 'function') {
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -61,7 +60,7 @@ const register = async (req, res) => {
       console.error('⚠️ Excepție la conectarea cu Supabase Auth:', spAuthErr.message);
     }
 
-    // B. Salvare în MongoDB
+    // B. Salvare în MongoDB (Trimitem parola în clar; modelul Mongoose o va cripta automat prin hook-ul pre-save)
     const newUser = new User({
       name,
       email: normalizedEmail,
@@ -73,35 +72,34 @@ const register = async (req, res) => {
     await newUser.save();
     console.log('✅ Utilizator salvat în MongoDB cu ID-ul:', newUser._id);
 
-    // C. Salvare în tabela profiles din Supabase (Dacă avem ID valid din auth.users)
-    // C. Salvare cu UPSERT în Supabase Profiles
-if (supabaseUserId && typeof supabase.from === 'function') {
-  try {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert([
-        { 
-          id: supabaseUserId,
-          full_name: name,
-          email: normalizedEmail,
-          role: role
-        }
-      ], { onConflict: 'id' });
+    // C. Salvare în tabela profiles din Supabase
+    if (supabaseUserId && typeof supabase.from === 'function') {
+      try {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert([
+            { 
+              id: supabaseUserId,
+              full_name: name,
+              email: normalizedEmail,
+              role: role
+            }
+          ], { onConflict: 'id' });
 
-    if (profileError) {
-      console.error('⚠️ Eroare salvare tabela profiles:', profileError.message);
-    } else {
-      if (role === 'teacher') {
-        await supabase.from('teacher_profiles').upsert([{ id: supabaseUserId }], { onConflict: 'id' });
-      } else {
-        await supabase.from('student_profiles').upsert([{ id: supabaseUserId }], { onConflict: 'id' });
+        if (profileError) {
+          console.error('⚠️ Eroare salvare tabela profiles:', profileError.message);
+        } else {
+          if (role === 'teacher') {
+            await supabase.from('teacher_profiles').upsert([{ id: supabaseUserId }], { onConflict: 'id' });
+          } else {
+            await supabase.from('student_profiles').upsert([{ id: supabaseUserId }], { onConflict: 'id' });
+          }
+          console.log('✅ Profil sincronizat cu succes în Supabase!');
+        }
+      } catch (profileErr) {
+        console.error('⚠️ Excepție la inserarea în profiles:', profileErr.message);
       }
-      console.log('✅ Profil sincronizat cu succes în Supabase!');
     }
-  } catch (profileErr) {
-    console.error('⚠️ Excepție la inserarea în profiles:', profileErr.message);
-  }
-}
 
     return res.status(201).json({ message: 'Utilizator înregistrat cu succes!' });
   } catch (error) {
@@ -125,6 +123,10 @@ const login = async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(401).json({ message: 'Email sau parolă incorectă.' });
+    }
+
+    if (!user.password) {
+      return res.status(401).json({ message: 'Contul nu are o parolă locală setată.' });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -151,11 +153,20 @@ const login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
+    // 🔴 1. Setăm cookie-ul 'token' pe care middleware-ul de pe rutele protejate îl citește obligatoriu
+    res.cookie('token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 ore
+    });
+
+    // 2. Setăm și cookie-ul pentru refresh token
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      sameSite: 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 zile
     });
 
     return res.status(200).json({
@@ -227,10 +238,17 @@ const refresh = async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    res.cookie('token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
+      sameSite: 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -250,6 +268,7 @@ const logout = async (req, res) => {
   } catch (e) {
     console.error('Eroare curățare token la logout:', e);
   }
+  res.clearCookie('token');
   res.clearCookie('refreshToken');
   return res.status(200).json({ message: 'Deconectat cu succes.' });
 };
@@ -311,7 +330,7 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Token invalid sau expirat.' });
     }
 
-    user.password = new_password;
+    user.password = new_password; 
     user.resetToken = undefined;
     user.resetTokenExpires = undefined;
     user.refreshToken = undefined;

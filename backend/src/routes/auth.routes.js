@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
-const { decryptAES, verifySignatureECC } = require('../utils/cryptoUtils');
+const { decryptAES, verifySignatureECC } = require('../Utils/cryptoUtils');
 
 const forgotPasswordLimiter = (req, res, next) => next();
 
