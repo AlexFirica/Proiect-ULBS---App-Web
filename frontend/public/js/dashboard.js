@@ -172,27 +172,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4. RANDARE CLASE ÎN DOM
-  function renderClassrooms(classrooms) {
-    const container = document.querySelector('.classrooms-grid') || 
-                      document.querySelector('.classes-container') || 
-                      document.getElementById('classrooms-container');
+ // 4. RANDARE CLASE ÎN DOM
+function renderClassrooms(classrooms) {
+  const container = document.querySelector('.classrooms-grid') || 
+                    document.querySelector('.classes-container') || 
+                    document.getElementById('classrooms-container');
+  const emptyState = document.querySelector('.empty-state');
 
-    if (!container) return;
+  if (!container) return;
 
-    if (!Array.isArray(classrooms) || classrooms.length === 0) {
-      container.innerHTML = '<p class="no-data">Nu ai nicio clasă momentan.</p>';
-      return;
-    }
-
-    container.innerHTML = classrooms.map(c => `
-      <div class="class-card" data-id="${c.id}">
-        <h3>${escapeHTML(c.name || c.title || 'Clasă fără nume')}</h3>
-        <p>${escapeHTML(c.description || 'Fără descriere')}</p>
-        ${c.invite_code ? `<span class="invite-tag">Cod: <strong>${escapeHTML(c.invite_code)}</strong></span>` : ''}
-      </div>
-    `).join('');
+  if (!Array.isArray(classrooms) || classrooms.length === 0) {
+    if (emptyState) emptyState.style.display = '';
+    container.innerHTML = '';
+    return;
   }
+
+  if (emptyState) emptyState.style.display = 'none';
+
+  const typeLabels = {
+    liceu: '🏫 Liceu',
+    optional: '✨ Opțional',
+    club: '🎯 Club',
+    bacalaureat: '🎓 Bacalaureat'
+  };
+
+  container.innerHTML = classrooms.map(c => `
+    <div class="class-card" data-id="${c.id}" style="
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    ">
+      <span style="font-size: 12px; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.03em;">
+        ${typeLabels[c.type] || c.type || ''}
+      </span>
+      <h3 style="margin: 0; font-size: 17px; color: #1e293b;">
+        ${escapeHTML(c.name || c.title || 'Clasă fără nume')}
+      </h3>
+      <div style="
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 10px;
+      ">
+        <span style="font-size: 13px; color: #64748b;">Cod invitație</span>
+        <strong style="
+          font-family: monospace;
+          background: #f1f5f9;
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 13px;
+          color: #4f46e5;
+          letter-spacing: 0.05em;
+        ">${escapeHTML(c.invite_code || '—')}</strong>
+      </div>
+    </div>
+  `).join('');
+}
 });
 
 function escapeHTML(str) {

@@ -6,7 +6,7 @@ const Homework = require('../models/homework.model'); // Importăm modelul tău 
 // 1. CREARE CLASĂ (POST /api/classrooms) - Neschimbat
 const createClassroom = async (req, res) => {
   try {
-    const { title, name, description } = req.body;
+    const { title, name, type } = req.body;
     const classroomName = title || name;
 
     if (!classroomName) {
@@ -25,9 +25,9 @@ const createClassroom = async (req, res) => {
       .insert([
         {
           name: classroomName,
-          description: description || '',
           teacher_id: teacherId,
-          invite_code: inviteCode
+          invite_code: inviteCode,
+          type: type || 'liceu'   // valoare implicită validă din enum
         }
       ])
       .select();

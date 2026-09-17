@@ -43,12 +43,11 @@ const register = async (req, res) => {
     let supabaseUserId = null;
     try {
       if (supabase && typeof supabase.auth?.signUp === 'function') {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: normalizedEmail,
           password: password,
-          options: {
-            data: { full_name: name, role: role }
-          }
+          email_confirm: true,
+          user_metadata: { full_name: name, role: role }
         });
 
         if (authError) {

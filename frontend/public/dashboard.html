@@ -347,9 +347,6 @@
           editorConsole.innerText = "❌ Eroare de conexiune cu serverul.";
         }
       });
-
-      // Încărcăm clasele la pornirea paginii
-      loadClassrooms();
     });
 
     // Funcție separată pentru inițializarea Monaco Editor
@@ -367,84 +364,6 @@
         });
       }
     }
-
-    // Funcție globală pentru a încărca Classroom-urile din Supabase + Teme din Mongo
-    async function loadClassrooms() {
-  const grid = document.getElementById('classrooms-grid');
-  try {
-    // 🔴 Citim token-ul salvat în localStorage în momentul logării
-    const token = localStorage.getItem('token');
-
-    const res = await fetch('/api/classrooms', {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        // 🔴 Trimitem token-ul în antet pentru a fi garantat recunoscut de middleware
-        'Authorization': token ? `Bearer ${token}` : ''
-      }
-    });
-    
-    if (res.status === 401) {
-      console.warn("Utilizatorul nu este autentificat (401). Se redirecționează spre login.");
-      window.location.href = '/login.html';
-      return;
-    }
-
-    const classrooms = await res.json();
-    if (classrooms && classrooms.length > 0) {
-      const emptyState = document.querySelector('.empty-state');
-      if (emptyState) emptyState.style.display = 'none';
-      grid.innerHTML = '';
-
-      classrooms.forEach(cls => {
-        const card = document.createElement('div');
-        card.className = 'stat-card';
-        card.style.cssText = "background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px;";
-        
-        // Asigurăm compatibilitatea id-ului (poate fi cls.id din Supabase sau cls._id din Mongo)
-        const classId = cls.id || cls._id;
-
-        card.innerHTML = `
-          <h4 style="margin: 0; color: #1e293b; font-size: 18px;">📚 ${cls.name || cls.title}</h4>
-          <p style="margin: 0; color: #64748b; font-size: 14px;">${cls.description || 'Fără descriere'}</p>
-          <div style="margin-top: 10px;">
-            <strong>Teme disponibile:</strong>
-            <ul style="padding-left: 20px; margin: 5px 0 0 0;" id="homework-list-${classId}">
-              <!-- Teme injectate dinamic -->
-            </ul>
-          </div>
-        `;
-        grid.appendChild(card);
-
-        const homeworkListUl = document.getElementById(`homework-list-${classId}`);
-        if (cls.homeworks && cls.homeworks.length > 0) {
-          cls.homeworks.forEach(hw => {
-            const li = document.createElement('li');
-            li.innerHTML = `<a href="#" class="open-hw-btn" data-id="${hw._id}" style="color: #4f46e5; text-decoration: none; font-weight: 500;">📝 ${hw.title} (+${hw.xpReward || 10} XP)</a>`;
-            homeworkListUl.appendChild(li);
-          });
-        } else {
-          homeworkListUl.innerHTML = `<li style="color: #94a3b8; font-size: 13px;">Nicio temă activă.</li>`;
-        }
-      });
-
-      // Atașăm evenimente de click pe teme
-      document.querySelectorAll('.open-hw-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const hwId = e.target.getAttribute('data-id');
-          if (typeof window.openEditorWithHomework === 'function') {
-            window.openEditorWithHomework(hwId);
-          }
-        });
-      });
-    }
-  } catch (err) {
-    console.error("Eroare la încărcarea claselor:", err);
-  }
-}
-
     // Funcție globală pentru deschiderea editorului cu o temă specifică
     window.openEditorWithHomework = async function(hwId) {
       currentActiveHomeworkId = hwId; // Setăm ID-ul temei pentru trimiterea finală
@@ -473,4 +392,4 @@
     };
   </script>
 </body>
-</html>
+</html> 
