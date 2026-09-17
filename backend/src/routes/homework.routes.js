@@ -1,3 +1,4 @@
+// backend/src/routes/homework.routes.js
 const express = require('express');
 const router = express.Router();
 const homeworkController = require('../controllers/homework.controller');

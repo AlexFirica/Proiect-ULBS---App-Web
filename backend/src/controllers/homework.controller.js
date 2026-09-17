@@ -1,3 +1,4 @@
+// backend/controllers/homework.controller.js
 const Homework = require('../models/homework.model');
 const axios = require('axios');
 

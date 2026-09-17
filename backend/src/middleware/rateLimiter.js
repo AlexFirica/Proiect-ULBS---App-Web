@@ -1,3 +1,4 @@
+// backend/src/middleware/rateLimiter.js
 const rateLimit = require('express-rate-limit');
 const { RedisStore } = require('rate-limit-redis');
 const redisClient = require('../config/redis');

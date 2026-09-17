@@ -1,3 +1,4 @@
+// backend/src/models/user.model.js
 const mongoose = require('mongoose');
 const argon2 = require('argon2');
 
@@ -6,8 +7,7 @@ const userSchema = new mongoose.Schema(
     supabaseId: {
       type: String,
       unique: true,
-      sparse: true, // Permite ca userii creați direct în aplicație (fără Supabase) să nu dea eroare de unicitate dacă e gol
-      trim: true
+      sparse: true // Permite ca userii creați direct în aplicație (fără Supabase) să nu dea eroare de unicitate dacă e gol
     },
     name: {
       type: String,

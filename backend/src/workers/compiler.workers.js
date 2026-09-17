@@ -1,3 +1,4 @@
+// backend/src/workers/compiler.workers.js
 const { Worker } = require('bullmq');
 const axios = require('axios');
 const { supabase } = require('../config/supabase');

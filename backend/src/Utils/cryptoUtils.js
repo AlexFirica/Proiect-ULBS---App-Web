@@ -1,3 +1,4 @@
+// backend/src/Utils/cryptoUtils.js
 const crypto = require('crypto');
 
 // 1. CONFIGURARE AES-256-GCM (Symmetric)

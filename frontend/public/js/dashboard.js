@@ -1,3 +1,4 @@
+// frontend/public/js/dashboard.js
 document.addEventListener('DOMContentLoaded', () => {
   const savedUser = localStorage.getItem('user');
   const token = localStorage.getItem('token');
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const userRoleEl = document.querySelector('.user-role');
   if (userRoleEl) userRoleEl.textContent = user.role;
 
-  // Gestionare vizibilitate butoane creare/alăturare
+  // Gestionare vizibilitate butoane creare clase
   const createBtns = ['creeaza_classroom1', 'creeaza_classroom2', 'creeaza_classroom3'];
   createBtns.forEach(id => {
     const btn = document.getElementById(id);
@@ -73,11 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
+        const currentToken = localStorage.getItem('token');
         const response = await fetch('/api/classrooms', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${currentToken}`
           },
           body: JSON.stringify({ title, description })
         });
@@ -88,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (titleInput) titleInput.value = '';
           if (descInput) descInput.value = '';
           if (modal) modal.setAttribute('hidden', '');
-          
           await loadClassrooms();
         } else {
           alert(data.message || data.error || 'Eroare la crearea clasei.');
@@ -113,11 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
+        const currentToken = localStorage.getItem('token');
         const response = await fetch('/api/classrooms/join', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${currentToken}`
           },
           body: JSON.stringify({ invite_code })
         });
@@ -128,7 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (codeInput) codeInput.value = '';
           const joinModal = document.getElementById('join-modal');
           if (joinModal) joinModal.setAttribute('hidden', '');
-          
           await loadClassrooms();
         } else {
           alert(data.message || 'Cod invalid sau eroare la înscriere.');

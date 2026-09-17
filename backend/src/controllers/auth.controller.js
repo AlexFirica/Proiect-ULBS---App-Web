@@ -1,3 +1,4 @@
+// backend/src/controllers/auth.controller.js
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -60,14 +61,19 @@ const register = async (req, res) => {
       console.error('⚠️ Excepție la conectarea cu Supabase Auth:', spAuthErr.message);
     }
 
-    // B. Salvare în MongoDB (Trimitem parola în clar; modelul Mongoose o va cripta automat prin hook-ul pre-save)
-    const newUser = new User({
-      name,
-      email: normalizedEmail,
-      password,
-      role,
-      supabaseId: supabaseUserId
-    });
+    // B. Salvare în MongoDB
+    const userData = {
+    name,
+    email: normalizedEmail,
+    password,
+    role
+  };
+
+  if (supabaseUserId) {
+    userData.supabaseId = supabaseUserId;
+  }
+
+  const newUser = new User(userData);
 
     await newUser.save();
     console.log('✅ Utilizator salvat în MongoDB cu ID-ul:', newUser._id);
@@ -108,7 +114,7 @@ const register = async (req, res) => {
   }
 };
 
-// 2. LOGARE (Login)
+// 2. LOGARE (Login) - FĂRĂ COOKIES, DOAR JSON RESPONSE
 const login = async (req, res) => {
   try {
     const email = req.body.email || req.body.Email;
@@ -153,25 +159,11 @@ const login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    // 🔴 1. Setăm cookie-ul 'token' pe care middleware-ul de pe rutele protejate îl citește obligatoriu
-    res.cookie('token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      maxAge: 24 * 60 * 60 * 1000 // 24 ore
-    });
-
-    // 2. Setăm și cookie-ul pentru refresh token
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 zile
-    });
-
+    // ❌ Fără res.cookie. Trimitem totul direct în JSON pentru localStorage
     return res.status(200).json({
       message: 'Logare reușită!',
       token: accessToken,
+      refreshToken: refreshToken,
       user: { 
         id: user._id, 
         supabaseId: user.supabaseId,
@@ -202,19 +194,19 @@ const verify = async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
 
-    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?verified=true`);
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login.html?verified=true`);
   } catch (error) {
     return res.status(500).json({ message: 'Eroare la verificare.', error: error.message });
   }
 };
 
-// 4. Refresh Token
+// 4. Refresh Token (Adaptat pentru Bearer / JSON, fără cookies)
 const refresh = async (req, res) => {
-  const oldToken = req.cookies.refreshToken;
-  if (!oldToken) return res.status(401).json({ message: 'Sesiune lipsă.' });
+  const oldRefreshToken = req.body.refreshToken || req.headers['x-refresh-token'];
+  if (!oldRefreshToken) return res.status(401).json({ message: 'Sesiune lipsă.' });
 
   try {
-    const user = await User.findOne({ refreshToken: oldToken });
+    const user = await User.findOne({ refreshToken: oldRefreshToken });
 
     if (!user) {
       return res.status(401).json({ message: 'Sesiune invalidă sau expirată.' });
@@ -238,21 +230,7 @@ const refresh = async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    res.cookie('token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      maxAge: 24 * 60 * 60 * 1000
-    });
-
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    return res.status(200).json({ access_token });
+    return res.status(200).json({ access_token, refreshToken: newRefreshToken });
   } catch (error) {
     return res.status(500).json({ message: 'Eroare la reîmprospătarea sesiunii.', error: error.message });
   }
@@ -261,15 +239,18 @@ const refresh = async (req, res) => {
 // 5. Logout
 const logout = async (req, res) => {
   try {
-    const oldToken = req.cookies.refreshToken;
-    if (oldToken) {
-      await User.findOneAndUpdate({ refreshToken: oldToken }, { $unset: { refreshToken: 1 } });
+    // Dacă utilizatorul trimite tokenul în header, îl putem decoda sau extrage userul
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, JWT_SECRET, { ignoreExpiration: true });
+      if (decoded && decoded.id) {
+        await User.findByIdAndUpdate(decoded.id, { $unset: { refreshToken: 1 } });
+      }
     }
   } catch (e) {
     console.error('Eroare curățare token la logout:', e);
   }
-  res.clearCookie('token');
-  res.clearCookie('refreshToken');
   return res.status(200).json({ message: 'Deconectat cu succes.' });
 };
 

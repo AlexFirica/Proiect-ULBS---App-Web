@@ -1,16 +1,13 @@
 /* ============================================================
-   LOGIN.JS — Production ready
-   Gestionează: switch rol, login form, modal sign-up 3 pași
+   LOGIN.JS — frontend/public/js/login.js
 ============================================================ */
 
 'use strict';
 
-// ── State global ──────────────────────────────────────────
-let currentRole = 'profesor'; // rol activ pe pagina de login
-let suRole      = null;       // rol ales în modal
-let suScore     = 0;          // scor parolă (0-5)
+let currentRole = 'profesor'; 
+let suRole      = null;       
+let suScore     = 0;          
 
-// ── Switch rol (toggle Profesor / Cursant) ────────────────
 function switchRole(rol) {
   currentRole = rol;
   const isPro = rol === 'profesor';
@@ -354,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // ── Submit Login pe baza butonului (Oprește orice refresh de pagină) ──
+  // ── Submit Login ──────────────────────────────────────────
   const loginBtn = document.getElementById('login-submit');
 
   if (loginBtn) {
@@ -384,8 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(loginBtn, false, 'Intră în cont');
 
         if (response.ok) {
+          // Salvăm token-ul și datele userului direct în localStorage
           if (data.token) {
             localStorage.setItem('token', data.token);
+          }
+          if (data.refreshToken) {
+            localStorage.setItem('refreshToken', data.refreshToken);
           }
           
           localStorage.setItem('user', JSON.stringify(data.user || data));

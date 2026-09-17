@@ -1,3 +1,4 @@
+// backend/src/controllers/classroom.controller.js
 const supabase = require('../config/supabase');
 const crypto = require('crypto');
 const Homework = require('../models/homework.model'); // Importăm modelul tău de MongoDB pentru teme

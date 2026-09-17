@@ -1,20 +1,15 @@
+// backend/src/middleware/auth.middleware.js
 const jwt = require('jsonwebtoken');
-
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_temporar_dev_codeedu';
 
 const authenticateJWT = (req, res, next) => {
-  let token = null;
   const authHeader = req.headers.authorization;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
-  } else if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Acces neautorizat. Tokenul lipseste sau este invalid.' });
   }
 
-  if (!token) {
-    return res.status(401).json({ message: 'Acces neautorizat. Tokenul lipsește.' });
-  }
+  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -32,8 +27,6 @@ const requireRole = (...allowedRoles) => {
     }
 
     const userRole = req.user.role;
-
-    // Verifică echivalența dintre roluri în limba română și engleză
     const isAllowed = allowedRoles.some(role => {
       if ((role === 'student' || role === 'cursant') && (userRole === 'cursant' || userRole === 'student')) return true;
       if ((role === 'teacher' || role === 'profesor') && (userRole === 'profesor' || userRole === 'teacher')) return true;
@@ -50,6 +43,6 @@ const requireRole = (...allowedRoles) => {
 
 module.exports = { 
   authenticateJWT, 
-  protect: authenticateJWT, // Alias pentru a fi compatibil cu importul { protect }
+  protect: authenticateJWT, 
   requireRole 
 };
