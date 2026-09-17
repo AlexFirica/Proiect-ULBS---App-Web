@@ -554,3 +554,16 @@ body {
   font-size: 0.85rem;
   align-self: flex-start;
 }
+
+.class-card {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.class-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.15);
+}
+
+.cm-homework-item:hover {
+  background: #eef2ff !important;
+}

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const normalizedRole = (user.role || '').toLowerCase();
   const isTeacher = normalizedRole === 'teacher' || normalizedRole === 'profesor';
   const isStudent = !isTeacher;
+   let lastLoadedClassrooms = [];
 
   // Populare date utilizator în UI
   const welcomeH2 = document.querySelector('.welcome-banner h2');
@@ -165,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const classrooms = await response.json();
+      lastLoadedClassrooms = classrooms;
       renderClassrooms(classrooms);
 
     } catch (error) {
@@ -197,7 +199,7 @@ function renderClassrooms(classrooms) {
   };
 
   container.innerHTML = classrooms.map(c => `
-    <div class="class-card" data-id="${c.id}" style="
+    <div class="class-card" data-id="${c.id}" data-name="${escapeHTML(c.name || c.title || '')}" style="
       background: white;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
@@ -235,8 +237,192 @@ function renderClassrooms(classrooms) {
     </div>
   `).join('');
 }
+ // 5. MODAL CLASSROOM (click pe card)
+  const classroomModal = document.getElementById('classroom-modal');
+  const cmClose = document.getElementById('cm-close');
+  const cmTitle = document.getElementById('cm-title');
+  const cmHomeworkList = document.getElementById('cm-homework-list');
+  const cmMaterialsList = document.getElementById('cm-materials-list');
+  const cmTeacherUpload = document.getElementById('cm-teacher-upload');
+  const cmUploadBtn = document.getElementById('cm-upload-btn');
+
+  let currentClassroomId = null;
+
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.class-card');
+    if (card) openClassroomModal(card.dataset.id, card.dataset.name);
+  });
+
+  if (cmClose) cmClose.addEventListener('click', () => classroomModal.setAttribute('hidden', ''));
+
+  document.querySelectorAll('.cm-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.cm-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('cm-pane-teme').hidden = tab.dataset.tab !== 'teme';
+      document.getElementById('cm-pane-cursuri').hidden = tab.dataset.tab !== 'cursuri';
+    });
+  });
+
+  async function openClassroomModal(id, name) {
+    currentClassroomId = id;
+    cmTitle.textContent = name || 'Classroom';
+    cmTeacherUpload.hidden = !isTeacher;
+    cmAddHomeworkBtn.hidden = !isTeacher;
+    classroomModal.removeAttribute('hidden');
+
+    // Teme — le luăm din datele deja încărcate (classrooms cu homeworks)
+    const cls = lastLoadedClassrooms.find(c => String(c.id) === String(id));
+    const homeworks = cls?.homeworks || [];
+    cmHomeworkList.innerHTML = homeworks.length
+      ? homeworks.map(hw => `
+          <li data-hwid="${hw._id}" class="cm-homework-item" style="padding:10px; background:#f8fafc; border-radius:8px; cursor:pointer; transition:background 0.15s ease;">
+            📝 ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)
+          </li>`).join('')
+      : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
+
+    // Materiale
+    await loadMaterials(id);
+  }
+
+  async function loadMaterials(classroomId) {
+    try {
+      const currentToken = localStorage.getItem('token');
+      const res = await fetch(`/api/classrooms/${classroomId}/materials`, {
+        headers: { 'Authorization': `Bearer ${currentToken}` }
+      });
+      const materials = await res.json();
+
+      cmMaterialsList.innerHTML = Array.isArray(materials) && materials.length
+        ? materials.map(m => `
+            <li style="padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+              <span>📄 ${escapeHTML(m.title)}</span>
+              <a href="${m.file_url}" target="_blank" style="color:#4f46e5; font-size:13px;">Deschide</a>
+            </li>`).join('')
+        : '<li style="color:#94a3b8;">Niciun material încărcat.</li>';
+    } catch (err) {
+      console.error('Eroare la încărcarea materialelor:', err);
+    }
+  }
+
+  if (cmUploadBtn) {
+    cmUploadBtn.addEventListener('click', async () => {
+      const titleInput = document.getElementById('cm-material-title');
+      const fileInput = document.getElementById('cm-material-file');
+
+      if (!titleInput.value.trim() || !fileInput.files[0]) {
+        alert('Completează titlul și alege un fișier.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('title', titleInput.value.trim());
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const currentToken = localStorage.getItem('token');
+        const res = await fetch(`/api/classrooms/${currentClassroomId}/materials`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentToken}` },
+          body: formData
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          titleInput.value = '';
+          fileInput.value = '';
+          await loadMaterials(currentClassroomId);
+        } else {
+          alert(data.message || 'Eroare la încărcarea materialului.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Eroare la conectarea cu serverul.');
+      }
+    });
+  }
+
+   // 6. ADĂUGARE TEMĂ (POST /api/homeworks)
+  const addHomeworkModal = document.getElementById('add-homework-modal');
+  const cmAddHomeworkBtn = document.getElementById('cm-add-homework-btn');
+  const hwCancelBtn = document.getElementById('hw-cancel-btn');
+  const hwSaveBtn = document.getElementById('hw-save-btn');
+
+  if (cmAddHomeworkBtn) {
+    cmAddHomeworkBtn.addEventListener('click', () => {
+      document.getElementById('hw-title').value = '';
+      document.getElementById('hw-description').value = '';
+      document.getElementById('hw-xp').value = 10;
+      document.getElementById('hw-deadline').value = '';
+      addHomeworkModal.removeAttribute('hidden');
+    });
+  }
+
+  if (hwCancelBtn) {
+    hwCancelBtn.addEventListener('click', () => addHomeworkModal.setAttribute('hidden', ''));
+  }
+
+  if (hwSaveBtn) {
+    hwSaveBtn.addEventListener('click', async () => {
+      const title = document.getElementById('hw-title').value.trim();
+      const description = document.getElementById('hw-description').value.trim();
+      const xpReward = parseInt(document.getElementById('hw-xp').value, 10) || 10;
+      const dueDate = document.getElementById('hw-deadline').value;
+
+      if (!title || !dueDate) {
+        alert('Titlul și termenul limită sunt obligatorii.');
+        return;
+      }
+
+      try {
+        const currentToken = localStorage.getItem('token');
+        const res = await fetch('/api/homeworks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            dueDate: new Date(dueDate).toISOString(),
+            classroomId: currentClassroomId,
+            xpReward,
+            isCodingTask: true
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          addHomeworkModal.setAttribute('hidden', '');
+          await loadClassrooms();
+          openClassroomModal(currentClassroomId, cmTitle.textContent);
+        } else {
+          alert(data.message || 'Eroare la crearea temei.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Eroare la conectarea cu serverul.');
+      }
+    });
+  }
+
+  // Click pe o temă → deschide compilatorul cu datele ei
+  if (cmHomeworkList) {
+    cmHomeworkList.addEventListener('click', (e) => {
+      const item = e.target.closest('.cm-homework-item');
+      if (!item) return;
+      classroomModal.setAttribute('hidden', '');
+      if (typeof window.openEditorWithHomework === 'function') {
+        window.openEditorWithHomework(item.dataset.hwid);
+      }
+    });
+  }
+
 });
 
+ 
 function escapeHTML(str) {
   return String(str || '').replace(/[&<>'"]/g, 
     tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)

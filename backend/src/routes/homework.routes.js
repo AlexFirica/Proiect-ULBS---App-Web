@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const homeworkController = require('../controllers/homework.controller');
 
+const { protect, requireRole } = require('../middleware/auth.middleware');
+
 // 1. RUTA FIXĂ TREBUIE SĂ FIE PRIMA!
 router.post('/test-run', homeworkController.testRunCode);
 
@@ -13,5 +15,7 @@ router.get('/', homeworkController.getAllHomeworks);
 router.post('/', homeworkController.createHomework);
 router.put('/:id', homeworkController.updateHomework);
 router.delete('/:id', homeworkController.deleteHomework);
+
+router.post('/', protect, requireRole('teacher', 'profesor'), homeworkController.createHomework);
 
 module.exports = router;
