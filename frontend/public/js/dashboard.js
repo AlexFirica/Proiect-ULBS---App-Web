@@ -102,6 +102,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Afișare buton "Intră într-o clasă" doar pentru elevi
+  const openJoinModalBtn = document.getElementById('open-join-modal-btn');
+  const joinModal = document.getElementById('join-modal');
+  const joinModalCloseBtn = document.getElementById('join-modal-close');
+
+  if (openJoinModalBtn && isStudent) {
+    openJoinModalBtn.style.display = 'inline-block';
+    openJoinModalBtn.addEventListener('click', () => {
+      document.getElementById('invite-code-input').value = '';
+      joinModal.style.display = 'flex';
+      joinModal.removeAttribute('hidden');
+    });
+  }
+
+  if (joinModalCloseBtn) {
+    joinModalCloseBtn.addEventListener('click', () => {
+      joinModal.setAttribute('hidden', '');
+      joinModal.style.display = 'none';
+    });
+  }
+
   // 2. ÎNSCRIERE ÎN CLASĂ PENTRU ELEVI (POST /api/classrooms/join)
   const joinBtn = document.getElementById('join-class-btn');
   if (joinBtn && isStudent) {
@@ -130,7 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.ok) {
           if (codeInput) codeInput.value = '';
           const joinModal = document.getElementById('join-modal');
-          if (joinModal) joinModal.setAttribute('hidden', '');
+          if (joinModal) {
+            joinModal.setAttribute('hidden', '');
+            joinModal.style.display = 'none';
+          } 
           await loadClassrooms();
         } else {
           alert(data.message || 'Cod invalid sau eroare la înscriere.');
@@ -214,6 +238,9 @@ function renderClassrooms(classrooms) {
       </span>
       <h3 style="margin: 0; font-size: 17px; color: #1e293b;">
         ${escapeHTML(c.name || c.title || 'Clasă fără nume')}
+         ${c.pendingCount > 0
+          ? `<span style="background:#fef3c7; color:#b45309; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">${c.pendingCount} de rezolvat</span>`
+          : `<span style="background:#dcfce7; color:#15803d; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">✓ La zi</span>`}
       </h3>
       <div style="
         margin-top: 8px;
@@ -253,7 +280,10 @@ function renderClassrooms(classrooms) {
     if (card) openClassroomModal(card.dataset.id, card.dataset.name);
   });
 
-  if (cmClose) cmClose.addEventListener('click', () => classroomModal.setAttribute('hidden', ''));
+   if (cmClose) cmClose.addEventListener('click', () => {
+    classroomModal.setAttribute('hidden', '');
+    classroomModal.style.display = 'none';
+  });
 
   document.querySelectorAll('.cm-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -269,6 +299,7 @@ function renderClassrooms(classrooms) {
     cmTitle.textContent = name || 'Classroom';
     cmTeacherUpload.hidden = !isTeacher;
     cmAddHomeworkBtn.hidden = !isTeacher;
+     classroomModal.style.display = 'flex';
     classroomModal.removeAttribute('hidden');
 
     // Teme — le luăm din datele deja încărcate (classrooms cu homeworks)
@@ -276,8 +307,8 @@ function renderClassrooms(classrooms) {
     const homeworks = cls?.homeworks || [];
     cmHomeworkList.innerHTML = homeworks.length
       ? homeworks.map(hw => `
-          <li data-hwid="${hw._id}" class="cm-homework-item" style="padding:10px; background:#f8fafc; border-radius:8px; cursor:pointer; transition:background 0.15s ease;">
-            📝 ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)
+          <li data-hwid="${hw._id}" class="cm-homework-item" style="padding:10px; background:${hw.isCompleted ? '#f0fdf4' : '#f8fafc'}; border-radius:8px; cursor:pointer;">
+            ${hw.isCompleted ? '✅' : '📝'} ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)
           </li>`).join('')
       : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
 
@@ -347,19 +378,30 @@ function renderClassrooms(classrooms) {
   const cmAddHomeworkBtn = document.getElementById('cm-add-homework-btn');
   const hwCancelBtn = document.getElementById('hw-cancel-btn');
   const hwSaveBtn = document.getElementById('hw-save-btn');
+  const title = document.getElementById('hw-title').value.trim();
+  const description = document.getElementById('hw-description').value.trim();
+  const xpReward = parseInt(document.getElementById('hw-xp').value, 10) || 10;
+  const dueDate = document.getElementById('hw-deadline').value;
+  const testInput = document.getElementById('hw-testinput').value;
+  const expectedOutput = document.getElementById('hw-expectedoutput').value;
 
+  
   if (cmAddHomeworkBtn) {
     cmAddHomeworkBtn.addEventListener('click', () => {
       document.getElementById('hw-title').value = '';
       document.getElementById('hw-description').value = '';
       document.getElementById('hw-xp').value = 10;
       document.getElementById('hw-deadline').value = '';
+       addHomeworkModal.style.display = 'flex';
       addHomeworkModal.removeAttribute('hidden');
     });
   }
 
-  if (hwCancelBtn) {
-    hwCancelBtn.addEventListener('click', () => addHomeworkModal.setAttribute('hidden', ''));
+   if (hwCancelBtn) {
+    hwCancelBtn.addEventListener('click', () => {
+      addHomeworkModal.setAttribute('hidden', '');
+      addHomeworkModal.style.display = 'none';
+    });
   }
 
   if (hwSaveBtn) {
@@ -388,6 +430,8 @@ function renderClassrooms(classrooms) {
             dueDate: new Date(dueDate).toISOString(),
             classroomId: currentClassroomId,
             xpReward,
+            testInput,
+            expectedOutput,
             isCodingTask: true
           })
         });
@@ -396,6 +440,7 @@ function renderClassrooms(classrooms) {
 
         if (res.ok) {
           addHomeworkModal.setAttribute('hidden', '');
+          addHomeworkModal.style.display = 'none';
           await loadClassrooms();
           openClassroomModal(currentClassroomId, cmTitle.textContent);
         } else {
@@ -414,6 +459,7 @@ function renderClassrooms(classrooms) {
       const item = e.target.closest('.cm-homework-item');
       if (!item) return;
       classroomModal.setAttribute('hidden', '');
+       classroomModal.style.display = 'none';
       if (typeof window.openEditorWithHomework === 'function') {
         window.openEditorWithHomework(item.dataset.hwid);
       }

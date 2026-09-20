@@ -86,6 +86,7 @@
           <div class="section-header">
             <h3>Classrooms</h3>
             <button class="btn-primary" id="creeaza_classroom1">+ Creează classroom</button>
+             <button class="btn-primary" id="open-join-modal-btn" style="display:none;">🔑 Intră într-o clasă</button>
           </div>
 
           <!-- EMPTY CLASSROOMS STATE -->
@@ -246,7 +247,7 @@
     </div>
   </div>
 
-  <div id="classroom-modal" class="modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; display:flex; align-items:center; justify-content:center;">
+  <div id="classroom-modal" class="modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
   <div style="background:white; width:90%; max-width:640px; max-height:80vh; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;">
     <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
       <h3 id="cm-title" style="margin:0;">Nume classroom</h3>
@@ -276,7 +277,7 @@
   </div>
 </div>
 
-<div id="add-homework-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1100; display:flex; align-items:center; justify-content:center;">
+<div id="add-homework-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
   <div style="background:white; width:90%; max-width:480px; border-radius:12px; padding:24px;">
     <h3 style="margin-top:0;">Adaugă temă nouă</h3>
     <input type="text" id="hw-title" placeholder="Titlul temei" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
@@ -284,10 +285,28 @@
     <label style="font-size:13px; color:#64748b;">XP oferit</label>
     <input type="number" id="hw-xp" value="10" min="0" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
     <label style="font-size:13px; color:#64748b;">Termen limită</label>
+    <label style="font-size:13px; color:#64748b;">Date de intrare (Input test)</label>
+<textarea id="hw-testinput" placeholder="Ex: 10 15" rows="2" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-family:monospace;"></textarea>
+
+<label style="font-size:13px; color:#64748b;">Output așteptat (exact)</label>
+<textarea id="hw-expectedoutput" placeholder="Ex: Rezultatul este:25" rows="2" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-family:monospace;"></textarea>
     <input type="datetime-local" id="hw-deadline" style="width:100%; margin-bottom:16px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
     <div style="display:flex; gap:8px; justify-content:flex-end;">
       <button id="hw-cancel-btn" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
       <button id="hw-save-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer;">Salvează tema</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ÎNSCRIERE ÎN CLASĂ (elevi) -->
+<div id="join-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; width:90%; max-width:400px; border-radius:12px; padding:24px;">
+    <h3 style="margin-top:0;">Înscrie-te într-o clasă</h3>
+    <p style="color:#64748b; font-size:14px; margin-top:-8px;">Introdu codul de invitație primit de la profesor.</p>
+    <input type="text" id="invite-code-input" placeholder="Ex: 47EE5F" style="width:100%; margin-bottom:16px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace;">
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button id="join-modal-close" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
+      <button id="join-class-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer;">Înscrie-mă</button>
     </div>
   </div>
 </div>
@@ -337,11 +356,13 @@
 
         try {
           const response = await fetch('/api/homeworks/test-run', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sourceCode: code, customInput: inputData })
-          });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+  },
+  body: JSON.stringify({ sourceCode: code, customInput: inputData })
+});
           
           const result = await response.json();
 
@@ -373,17 +394,20 @@
 
         try {
           const response = await fetch(`/api/homeworks/${currentActiveHomeworkId}/submit`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sourceCode: code })
-          });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+  },
+  body: JSON.stringify({ sourceCode: code })
+});
           const result = await response.json();
 
           if (response.ok && result.success) {
             editorConsole.style.color = "#4ade80";
             editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
             alert(`Felicitări! Ai primit ${result.xpEarned} XP!`);
+            if (typeof loadClassrooms === 'function') await loadClassrooms();
           } else {
             editorConsole.style.color = "#f87171";
             editorConsole.innerText = `❌ ${result.message}\n\n[Detalii]\n${result.errorDetails || 'Verifică codul.'}`;
@@ -421,7 +445,9 @@
       initMonaco();
 
       try {
-        const res = await fetch(`/api/homeworks/${hwId}`, { credentials: 'include' });
+        const res = await fetch(`/api/homeworks/${hwId}`, {
+  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+});
         const homeworkData = await res.json();
         
         if (res.ok) {

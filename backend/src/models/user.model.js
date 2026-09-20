@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+        xp: {
+      type: Number,
+      default: 0
+    },
     verificationToken: String,
     resetToken: String,
     resetTokenExpires: Date,

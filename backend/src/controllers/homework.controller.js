@@ -1,6 +1,8 @@
 // backend/controllers/homework.controller.js
 const Homework = require('../models/homework.model');
 const axios = require('axios');
+const Submission = require('../models/submission.model');
+const User = require('../models/user.model');
 
 const { 
   encryptAES, 
@@ -37,7 +39,7 @@ const createHomework = async (req, res) => {
 
     // Generăm semnătura ECC pe baza datelor importante ale temei
     // Important: Includem și classroomId în șirul semnat pentru a proteja integritatea clasei!
-    const payloadToSign = `${title}-${encryptedDescription}-${dueDate}-${classroomId}`;
+    const payloadToSign = `${title}-${encryptedDescription}-${new Date(dueDate).toISOString()}`;
     const signature = signDataECC(payloadToSign);
 
     const newHomework = new Homework({
@@ -178,6 +180,7 @@ const deleteHomework = async (req, res) => {
 
 // 6. Evaluarea codului C++ trimis de elev
 // 6. Evaluarea codului (Mod Simulat pentru Testare)
+// 6. Evaluarea codului trimis de elev (execuție reală + XP condiționat)
 const submitCodeTask = async (req, res) => {
   try {
     const { sourceCode } = req.body;
@@ -187,57 +190,71 @@ const submitCodeTask = async (req, res) => {
       return res.status(400).json({ message: 'Tema nu există sau nu este un exercițiu de programare.' });
     }
 
-    // Afișăm în terminal codul primit pentru a fi siguri că ajunge corect
-    console.log("Cod primit de la elev:\n", sourceCode);
+    const studentId = req.user.id || req.user.userId;
 
-    // Simulăm o întârziere de 1 secundă (ca și cum am aștepta un compilator)
-    await new Promise(resolve => setTimeout(resolve, 1000));
+   const pistonRes = await axios.post(`${process.env.PISTON_API_URL}/execute`, {
+  language: 'c++',
+  version: '10.2.0',
+  files: [{ content: sourceCode }],
+  stdin: homework.testInput || ''
+});
 
-    // SIMULARE: Presupunem că programul a rulat perfect și a generat output-ul așteptat
-    const actualOutput = homework.expectedOutput.trim();
-    const expectedOutput = homework.expectedOutput.trim();
+    const actualOutput = (pistonRes.data.run.stdout || '').trim();
+    const expectedOutput = (homework.expectedOutput || '').trim();
+    const isCorrect = actualOutput === expectedOutput;
 
-    // Returnăm răspunsul către interfață
-    if (actualOutput === expectedOutput) {
-      return res.status(200).json({
-        success: true,
-        message: "Răspuns corect! Felicitări! (Test Simulat)",
-        output: actualOutput,
-        xpEarned: homework.xpReward
-      });
+    const existing = await Submission.findOne({ homeworkId: homework._id, studentId });
+    const alreadyPassed = existing?.status === 'passed';
+
+    let xpEarned = 0;
+    if (isCorrect && !alreadyPassed) {
+      xpEarned = homework.xpReward || 10;
+      await User.findByIdAndUpdate(studentId, { $inc: { xp: xpEarned } });
     }
 
+    await Submission.findOneAndUpdate(
+      { homeworkId: homework._id, studentId },
+      { status: isCorrect ? 'passed' : 'failed', output: actualOutput, xpAwarded: xpEarned },
+      { upsert: true }
+    );
+
+    return res.status(200).json({
+      success: isCorrect,
+      message: isCorrect
+        ? (alreadyPassed ? 'Corect! (Deja notată anterior — fără XP suplimentar)' : 'Răspuns corect! Felicitări!')
+        : 'Răspuns incorect. Verifică output-ul și încearcă din nou.',
+      output: actualOutput,
+      expectedOutput,
+      xpEarned
+    });
   } catch (error) {
-    console.error("Eroare Backend:", error);
-    res.status(500).json({ message: 'Eroare internă.', error: error.message });
+    console.error('Eroare Piston (submit):', error.message);
+    return res.status(500).json({ message: 'Eroare internă.', error: error.message });
   }
 };
 // 7. Rulare de test (Fără interogarea bazei de date și fără XP)
+// 7. Rulare de test (execuție reală prin Piston)
 const testRunCode = async (req, res) => {
   try {
     const { sourceCode, customInput } = req.body;
-
     if (!sourceCode) {
       return res.status(400).json({ success: false, message: 'Codul sursă lipsește.' });
     }
 
-    console.log("Rulare test personalizat. Cod primit:", sourceCode);
-    console.log("Input personalizat:", customInput);
+    const pistonRes = await axios.post(`${process.env.PISTON_API_URL}/execute`, {
+  language: 'c++',
+  version: '10.2.0',
+  files: [{ content: sourceCode }],
+  stdin: customInput || ''
+});
 
-    // Aici poți integra un apel real către Piston API sau poți returna un output simulat detaliat
-    // Exemplu de output detaliat care se va afișa în consolă:
-    await new Promise(resolve => setTimeout(resolve, 800)); // Simulare latență compilator
+    const run = pistonRes.data.run;
+    const output = run.stdout || run.stderr || '(fără output)';
 
-    const simulatedOutput = `--- REZULTAT TEST PERSONALIZAT ---\nInput folosit:\n${customInput || "(fără input)"}\n\nOutput generat de program:\n(Aici va apărea rezultatul rulării codului tău)`;
-
-    return res.status(200).json({
-      success: true,
-      output: simulatedOutput
-    });
-
+    return res.status(200).json({ success: true, output, exitCode: run.code });
   } catch (error) {
-    console.error("Eroare la testul personalizat:", error);
-    res.status(500).json({ success: false, message: 'Eroare internă de server.' });
+    console.error('Eroare Piston (test-run):', error.message);
+    return res.status(500).json({ success: false, message: 'Eroare la compilare/execuție.' });
   }
 };
 // Nu uita să adaugi submitCodeTask în module.exports la final!
