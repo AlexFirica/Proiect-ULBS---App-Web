@@ -4,6 +4,8 @@ const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const { decryptAES, verifySignatureECC } = require('../Utils/cryptoUtils');
 
+const { protect } = require('../middleware/auth.middleware');
+
 const forgotPasswordLimiter = (req, res, next) => next();
 
 /**
@@ -63,5 +65,9 @@ router.post('/resend-verification', authController.resendVerification);
 router.post('/forgot-password', forgotPasswordLimiter, authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.get('/verify', authController.verify);
+
+router.get('/me', protect, authController.getMe);
+
+router.post('/change-password', protect, authController.changePassword);
 
 module.exports = router;

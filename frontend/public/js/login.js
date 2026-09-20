@@ -392,7 +392,8 @@ document.addEventListener('DOMContentLoaded', () => {
           localStorage.setItem('user', JSON.stringify(data.user || data));
 
           // Redirecționare către Dashboard
-          window.location.href = '/dashboard.html';
+          const role = (data.user?.role || '').toLowerCase();
+          window.location.href = (role === 'teacher' || role === 'profesor') ? '/dashboard-teacher.html' : '/dashboard-student.html';
         } else {
           alert(data.message || 'Autentificare eșuată!');
         }

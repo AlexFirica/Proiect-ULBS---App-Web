@@ -3,6 +3,9 @@ const supabase = require('../config/supabase');
 const crypto = require('crypto');
 const Homework = require('../models/homework.model'); // Importăm modelul tău de MongoDB pentru teme
 const Submission = require('../models/submission.model');
+
+const User = require('../models/user.model');
+
 // 1. CREARE CLASĂ (POST /api/classrooms) - Neschimbat
 const createClassroom = async (req, res) => {
   try {
@@ -60,13 +63,20 @@ const getClassrooms = async (req, res) => {
 
     let classrooms;
 
-    if (isTeacherRole) {
+     if (isTeacherRole) {
       const { data, error } = await supabase.from('classrooms').select('*').eq('teacher_id', userId);
       if (error) {
         console.error('❌ Eroare Supabase la citire clase:', error);
         return res.status(500).json({ message: 'Eroare la citirea claselor.', error: error.message });
       }
-      classrooms = data;
+
+      classrooms = await Promise.all((data || []).map(async (cls) => {
+        const { count } = await supabase
+          .from('classroom_students')
+          .select('*', { count: 'exact', head: true })
+          .eq('classroom_id', cls.id);
+        return { ...cls, studentCount: count || 0 };
+      }));
     } else {
       const { data, error } = await supabase
         .from('classroom_students')
@@ -147,8 +157,24 @@ const joinClassroom = async (req, res) => {
   }
 };
 
-module.exports = {
-  createClassroom,
-  getClassrooms,
-  joinClassroom
+const getClassroomStudents = async (req, res) => {
+  try {
+    const { classroomId } = req.params;
+    const { data: enrollments, error } = await supabase
+      .from('classroom_students')
+      .select('student_id')
+      .eq('classroom_id', classroomId);
+
+    if (error) return res.status(500).json({ message: 'Eroare la citirea elevilor.', error: error.message });
+    if (!enrollments || enrollments.length === 0) return res.status(200).json([]);
+
+    const studentIds = enrollments.map(e => e.student_id);
+    const students = await User.find({ supabaseId: { $in: studentIds } }).select('name email xp');
+
+    return res.status(200).json(students);
+  } catch (err) {
+    return res.status(500).json({ message: 'Eroare server.', error: err.message });
+  }
 };
+
+module.exports = { createClassroom, getClassrooms, joinClassroom, getClassroomStudents };

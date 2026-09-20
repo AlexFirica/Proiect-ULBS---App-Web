@@ -32,8 +32,12 @@ app.use(express.static(publicPath));
 // Rute pagini HTML
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/login.html', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
-app.get('/dashboard.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard.html')));
-
+app.get('/dashboard-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-teacher.html')));
+app.get('/dashboard-student.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-student.html')));
+app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'settings.html')));
+app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
+app.get('/classrooms-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-teacher.html')));
+app.get('/classrooms-student.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-student.html')));
 // Rute API
 app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);

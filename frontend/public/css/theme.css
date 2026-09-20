@@ -1,0 +1,176 @@
+/* frontend/public/css/theme.css */
+
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-sidebar: #0f172a;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --input-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --bg-sidebar: #0b1120;
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --input-bg: #0f172a;
+}
+
+/* Aplicare generală */
+[data-theme="dark"] body {
+  background: var(--bg-page) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .main-wrapper,
+[data-theme="dark"] .content-body,
+[data-theme="dark"] .app-container {
+  background: var(--bg-page) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .sidebar {
+  background: var(--bg-sidebar) !important;
+}
+
+[data-theme="dark"] .top-header {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .top-link,
+[data-theme="dark"] .nav-item,
+[data-theme="dark"] .user-name,
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
+[data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] p,
+[data-theme="dark"] label {
+  color: var(--text-main);
+}
+
+/* Text în carduri/widget-uri (NU în editorul Monaco, care are propriile culori de sintaxă) */
+[data-theme="dark"] .widget-box *,
+[data-theme="dark"] .stat-card *,
+[data-theme="dark"] .class-card *,
+[data-theme="dark"] .empty-state *,
+[data-theme="dark"] .plan-card *,
+[data-theme="dark"] .quick-actions li,
+[data-theme="dark"] #cm-pane-elevi *,
+[data-theme="dark"] #cm-title,
+[data-theme="dark"] #cm-invite-code {
+  color: var(--text-main);
+}
+
+/* Butoane de acțiuni rapide — fundal + text vizibile în dark mode */
+[data-theme="dark"] .action-btn,
+[data-theme="dark"] .widget-box button:not(.btn-primary) {
+  background: #0f172a !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Editorul Monaco își păstrează propriile culori de sintaxă — nu se aplică nicio regulă aici */
+
+/* Card XP elev (fundal alb fix, indiferent de temă) — text propriu, nu moștenit de la body */
+[data-theme="dark"] #student-xp-card {
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] #student-xp-card strong {
+  color: #1e293b !important;
+}
+[data-theme="dark"] #student-xp-label {
+  color: #64748b !important;
+}
+[data-theme="dark"] #student-level-label {
+  color: #4f46e5 !important;
+}
+
+[data-theme="dark"] .welcome-banner p,
+[data-theme="dark"] .user-role,
+[data-theme="dark"] .link-small {
+  color: var(--text-muted) !important;
+}
+
+/* Carduri (inclusiv cele generate cu stil inline) */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .widget-box,
+[data-theme="dark"] .empty-state,
+[data-theme="dark"] .class-card,
+[data-theme="dark"] .plan-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .class-card *,
+[data-theme="dark"] .stat-card *,
+[data-theme="dark"] .widget-box * {
+  color: inherit;
+}
+
+/* Modale */
+[data-theme="dark"] #create-modal > div,
+[data-theme="dark"] #classroom-modal > div,
+[data-theme="dark"] #add-homework-modal > div,
+[data-theme="dark"] #material-view-modal > div,
+[data-theme="dark"] #join-modal > div {
+  background: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] #cm-pane-teme li,
+[data-theme="dark"] #cm-pane-cursuri li,
+[data-theme="dark"] #cm-teacher-upload {
+  background: #0f172a !important;
+  color: var(--text-main) !important;
+}
+
+/* Formulare */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: var(--input-bg) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] table {
+  color: var(--text-main);
+}
+
+[data-theme="dark"] tr {
+  border-color: var(--border-color) !important;
+}
+
+/* Toggle switch folosit în Setări */
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+.theme-switch input { display: none; }
+.theme-switch .slider {
+  position: absolute; cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  border-radius: 999px;
+  transition: 0.2s;
+}
+.theme-switch .slider::before {
+  position: absolute; content: "";
+  height: 20px; width: 20px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.theme-switch input:checked + .slider {
+  background-color: #4f46e5;
+}
+.theme-switch input:checked + .slider::before {
+  transform: translateX(20px);
+}

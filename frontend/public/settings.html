@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Setări</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme-toggle.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+      <nav class="nav-menu">
+        <a href="#" id="back-to-dashboard" class="nav-item">
+          <span class="icon">🏠</span> Dashboard
+        </a>
+        <a href="#" class="nav-item active">
+          <span class="icon">⚙️</span> Setări
+        </a>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="top-nav-links">
+          <span class="top-link active">Setări</span>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body" style="display:block; max-width:640px; margin:0 auto; padding:32px 20px;">
+        <h2 style="margin-bottom:24px;">Setări cont</h2>
+
+        <!-- Interfață -->
+        <div class="widget-box" style="margin-bottom:20px; padding:20px;">
+          <h4 style="margin-top:0;">🎨 Interfață</h4>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+            <span>Mod întunecat (Dark mode)</span>
+            <label class="theme-switch">
+              <input type="checkbox" id="dark-mode-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Limbă -->
+        <div class="widget-box" style="margin-bottom:20px; padding:20px;">
+          <h4 style="margin-top:0;">🌐 Limbă</h4>
+          <select id="language-select" style="width:100%; padding:9px; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px;">
+            <option value="ro">🇷🇴 Română</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+          <p style="font-size:12px; color:#94a3b8; margin-top:8px;">Suportul complet pentru limba engleză este în lucru — momentan doar preferința ta este salvată.</p>
+        </div>
+
+        <!-- Schimbare parolă -->
+        <div class="widget-box" style="padding:20px;">
+          <h4 style="margin-top:0;">🔒 Schimbă parola</h4>
+          <input type="password" id="current-password" placeholder="Parola actuală" style="width:100%; margin-bottom:10px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+          <input type="password" id="new-password" placeholder="Parola nouă (min. 6 caractere)" style="width:100%; margin-bottom:10px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+          <input type="password" id="confirm-password" placeholder="Confirmă parola nouă" style="width:100%; margin-bottom:14px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+          <button id="change-password-btn" class="btn-primary" style="width:100%;">Salvează parola nouă</button>
+          <p id="password-msg" style="font-size:13px; margin-top:10px;"></p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/settings.js"></script>
+</body>
+</html>

@@ -331,6 +331,41 @@ const getProfile = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id || req.user.userId).select('name email role xp');
+    if (!user) return res.status(404).json({ message: 'Utilizator negăsit.' });
+    return res.status(200).json({ user });
+  } catch (error) {
+    return res.status(500).json({ message: 'Eroare server.', error: error.message });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Toate câmpurile sunt obligatorii.' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Parola nouă trebuie să aibă cel puțin 6 caractere.' });
+    }
+
+    const user = await User.findById(req.user.id || req.user.userId);
+    if (!user) return res.status(404).json({ message: 'Utilizator negăsit.' });
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) return res.status(401).json({ message: 'Parola actuală este incorectă.' });
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ message: 'Parola a fost schimbată cu succes.' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Eroare server.', error: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -340,5 +375,7 @@ module.exports = {
   resendVerification,
   forgotPassword,
   resetPassword,
-  getProfile
+  getProfile,
+  getMe,
+  changePassword
 };

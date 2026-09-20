@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Classrooms</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme-toggle.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+      <nav class="nav-menu">
+        <a href="/dashboard-student.html" class="nav-item">
+          <span class="icon">🏠</span> Dashboard
+        </a>
+        <a href="/classrooms-student.html" class="nav-item active">
+          <span class="icon">🏫</span> Classrooms
+        </a>
+        <a href="/coming-soon.html?f=Cursuri" class="nav-item">
+          <span class="icon">📚</span> Cursuri
+        </a>
+        <a href="/settings.html" class="nav-item">
+          <span class="icon">⚙️</span> Setări
+        </a>
+      </nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="top-nav-links">
+          <a href="/dashboard-student.html" class="top-link">Dashboard</a>
+          <a href="/classrooms-student.html" class="top-link active">Classrooms</a>
+        </div>
+        <div class="user-profile">
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body" style="display:block; padding:28px 32px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+          <h2 style="margin:0;">Classroom-urile tale</h2>
+          <button class="btn-primary" id="open-join-modal-btn">🔑 Intră într-o clasă</button>
+        </div>
+
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">🏫</div>
+          <h4>Nu ești înscris în niciun classroom</h4>
+          <p>Introdu codul de invitație primit de la profesor.</p>
+        </div>
+
+        <div id="classrooms-grid" class="classrooms-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px;"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL ÎNSCRIERE -->
+  <div id="join-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; width:90%; max-width:400px; border-radius:12px; padding:24px;">
+      <h3 style="margin-top:0;">Înscrie-te într-o clasă</h3>
+      <input type="text" id="invite-code-input" placeholder="Ex: 47EE5F" style="width:100%; margin-bottom:16px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; text-transform:uppercase; font-family:monospace;">
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="join-modal-close" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
+        <button id="join-class-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer;">Înscrie-mă</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CLASSROOM (detalii) -->
+  <div id="classroom-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; width:92%; max-width:680px; max-height:85vh; border-radius:14px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white;">
+        <h3 id="cm-title" style="margin:0;">Nume classroom</h3>
+        <button id="cm-close" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">&times;</button>
+      </div>
+      <div style="display:flex; border-bottom:1px solid #e2e8f0;">
+        <button class="cm-tab active" data-tab="teme" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📝 Teme</button>
+        <button class="cm-tab" data-tab="cursuri" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📚 Cursuri</button>
+      </div>
+      <div style="padding:20px; overflow-y:auto; flex:1;">
+        <div id="cm-pane-teme">
+          <ul id="cm-homework-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+        <div id="cm-pane-cursuri" hidden>
+          <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/classrooms-student.js"></script>
+</body>
+</html>

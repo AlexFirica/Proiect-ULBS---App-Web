@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, requireRole } = require('../middleware/auth.middleware');
-const { getClassrooms, createClassroom, joinClassroom } = require('../controllers/classroom.controller');
+const { createClassroom, getClassrooms, joinClassroom, getClassroomStudents } = require('../controllers/classroom.controller');
 
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -23,5 +23,7 @@ router.post('/join', protect, requireRole('student', 'cursant'), joinClassroom);
 
 router.get('/:classroomId/materials', protect, getMaterials);
 router.post('/:classroomId/materials', protect, requireRole('teacher', 'profesor'), upload.single('file'), uploadMaterial);
+
+router.get('/:classroomId/students', protect, getClassroomStudents);
 
 module.exports = router;
