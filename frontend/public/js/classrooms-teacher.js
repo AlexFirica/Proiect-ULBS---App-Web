@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastLoadedClassrooms = [];
   let currentClassroomId = null;
 
+  renderSidebar('teacher', 'classrooms');
+
   const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', club: '🎯 Club', bacalaureat: '🎓 Bacalaureat' };
 
   async function loadClassrooms() {
@@ -41,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="font-size:12px; color:#94a3b8;">${c.studentCount || 0} elevi înscriși</div>
         <div style="margin-top: 8px; display: flex; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 10px;">
           <span style="font-size: 13px; color: #64748b;">Cod invitație</span>
-          <strong style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 13px; color: #4f46e5;">${escapeHTML(c.invite_code || '—')}</strong>
+          <strong style="font-family: monospace; background: #f1f5f9 !important; padding: 4px 8px; border-radius: 6px; font-size: 13px; color: #4f46e5 !important;">${escapeHTML(c.invite_code || '—')}</strong>
         </div>
       </div>
     `).join('');

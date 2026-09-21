@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.user-role').textContent = 'elev';
 
   let lastLoadedClassrooms = [];
+  renderSidebar('student', 'classrooms');
   const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', club: '🎯 Club', bacalaureat: '🎓 Bacalaureat' };
 
   async function loadClassrooms() {
@@ -38,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <h3 style="margin: 0; font-size: 17px; color: #1e293b; display:flex; justify-content:space-between;">
           ${escapeHTML(c.name || c.title || 'Clasă fără nume')}
           ${pendingCount > 0
-            ? `<span style="background:#fef3c7; color:#b45309; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">${pendingCount} de rezolvat</span>`
-            : `<span style="background:#dcfce7; color:#15803d; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">✓ La zi</span>`}
+            ? `<span style="background:#fef3c7 !important; color:#b45309 !important; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">${pendingCount} de rezolvat</span>`
+            : `<span style="background:#dcfce7 !important; color:#15803d !important; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">✓ La zi</span>`}
         </h3>
       </div>`;
     }).join('');

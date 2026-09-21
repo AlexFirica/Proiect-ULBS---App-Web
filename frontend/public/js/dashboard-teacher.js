@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastLoadedClassrooms = [];
   let currentClassroomId = null;
 
+  renderSidebar('teacher', 'dashboard');
+
   // ─── Populare date utilizator ───────────────────────────────
   const welcomeH2 = document.querySelector('.welcome-banner h2');
   if (welcomeH2) welcomeH2.textContent = `Bun venit, ${user.name || user.email}! 👋`;
@@ -152,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="font-size:12px; color:#94a3b8;">${c.studentCount || 0} elevi înscriși</div>
         <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 10px;">
           <span style="font-size: 13px; color: #64748b;">Cod invitație</span>
-          <strong style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 13px; color: #4f46e5; letter-spacing: 0.05em;">${escapeHTML(c.invite_code || '—')}</strong>
+          <strong style="font-family: monospace; background: #f1f5f9 !important; padding: 4px 8px; border-radius: 6px; font-size: 13px; color: #4f46e5 !important; letter-spacing: 0.05em;">${escapeHTML(c.invite_code || '—')}</strong>
         </div>
       </div>
     `).join('');

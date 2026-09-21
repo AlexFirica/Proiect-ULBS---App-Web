@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastLoadedClassrooms = [];
   let currentClassroomId = null;
 
+  renderSidebar('student', 'dashboard');
+
   // ─── Populare date utilizator ───────────────────────────────
   const welcomeH2 = document.querySelector('.welcome-banner h2');
   if (welcomeH2) welcomeH2.textContent = `Bun venit, ${user.name || user.email}! 👋`;
@@ -27,6 +29,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (userNameEl) userNameEl.textContent = user.name || user.email;
   const userRoleEl = document.querySelector('.user-role');
   if (userRoleEl) userRoleEl.textContent = 'elev';
+
+  async function refreshUserData() {
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        Object.assign(user, data.user);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+    } catch (err) {
+      console.error('Eroare la actualizarea datelor utilizatorului:', err);
+    }
+  }
 
   // ─── Modal înscriere în clasă ─────────────────────────────────
   const joinModal = document.getElementById('join-modal');
@@ -167,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <h3 style="margin: 0; font-size: 17px; color: #1e293b; display:flex; align-items:center; justify-content:space-between;">
           ${escapeHTML(c.name || c.title || 'Clasă fără nume')}
           ${pendingCount > 0
-            ? `<span style="background:#fef3c7; color:#b45309; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">${pendingCount} de rezolvat</span>`
-            : `<span style="background:#dcfce7; color:#15803d; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">✓ La zi</span>`}
+            ? `<span style="background:#fef3c7 !important; color:#b45309 !important; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">${pendingCount} de rezolvat</span>`
+            : `<span style="background:#dcfce7 !important; color:#15803d !important; font-size:11px; padding:3px 8px; border-radius:999px; font-weight:700;">✓ La zi</span>`}
         </h3>
       </div>
     `;
@@ -291,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  loadClassrooms();
+  refreshUserData().then(loadClassrooms);
 
   // Deschidere automată a compilatorului dacă venim din pagina Classrooms
   const params = new URLSearchParams(window.location.search);

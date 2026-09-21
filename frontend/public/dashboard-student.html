@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -6,6 +7,7 @@
   <title>Codero - Dashboard Elev</title>
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
   <script src="/js/theme-toggle.js"></script>
 </head>
 <body>
@@ -24,32 +26,7 @@
         <p>Ai acces la toate classroom-urile tale.</p>
       </div>
 
-      <nav class="nav-menu">
-        <a href="/dashboard-student.html" class="nav-item active">
-          <span class="icon">🏠</span> Dashboard
-        </a>
-        <a href="/classrooms-student.html" class="nav-item">
-          <span class="icon">🏫</span> Classrooms
-        </a>
-        <a href="/coming-soon.html?f=Cursuri" class="nav-item">
-          <span class="icon">📚</span> Cursuri
-        </a>
-        <a href="/coming-soon.html?f=Mesaje" class="nav-item">
-          <span class="icon">💬</span> Mesaje
-        </a>
-        <a href="/coming-soon.html?f=Calendar" class="nav-item">
-          <span class="icon">📅</span> Calendar
-        </a>
-        <a href="/coming-soon.html?f=Fișierele mele" class="nav-item">
-          <span class="icon">📁</span> Fișierele mele
-        </a>
-        <a href="/settings.html" class="nav-item">
-          <span class="icon">⚙️</span> Setări
-        </a>
-        <button id="open-editor-btn" class="nav-item" style="width: 100%; text-align: left; background: #4f46e5; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; padding: 12px 16px; font-weight: bold;">
-          <span class="icon">💻</span> Compilator C++ (Mod Liber)
-        </button>
-      </nav>
+      <nav class="nav-menu" id="nav-menu"></nav>
 
       <div class="upgrade-card">
         <div class="crown-icon">👑</div>
@@ -64,11 +41,7 @@
 
       <!-- TOP NAVIGATION BAR -->
       <header class="top-header">
-        <div class="top-nav-links">
-          <a href="/dashboard-student.html" class="top-link active">Dashboard</a>
-          <a href="/classrooms-student.html" class="top-link">Classrooms</a>
-          <a href="/coming-soon.html?f=Cursuri" class="top-link">Cursuri</a>
-        </div>
+        <div class="top-nav-links"></div>
 
         <div class="user-profile">
           <button class="bell-btn"></button>
@@ -278,6 +251,7 @@
     </div>
   </div>
 
+  <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-student.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
   <script>
@@ -285,7 +259,6 @@
     let currentActiveHomeworkId = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      const openEditorBtn = document.getElementById('open-editor-btn');
       const closeEditorBtn = document.getElementById('close-editor-btn');
       const editorModal = document.getElementById('editor-modal');
       const testCodeBtn = document.getElementById('test-code-btn');
@@ -295,13 +268,14 @@
       const homeworkTitleText = document.getElementById('homework-title-text');
       const homeworkDescText = document.getElementById('homework-desc-text');
 
-      openEditorBtn.addEventListener('click', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('openSandbox') === '1') {
         currentActiveHomeworkId = null;
         homeworkTitleText.innerText = "Mod Liber (Sandbox)";
         homeworkDescText.innerText = "Poți scrie și testa orice cod dorești. Trimiterea oficială este dezactivată în acest mod.";
         editorModal.style.display = 'flex';
         initMonaco();
-      });
+      }
 
       closeEditorBtn.addEventListener('click', () => {
         editorModal.style.display = 'none';

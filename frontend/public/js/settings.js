@@ -17,8 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const userRoleEl = document.querySelector('.user-role');
   if (userRoleEl) userRoleEl.textContent = isTeacher ? 'profesor' : 'elev';
 
-  const backBtn = document.getElementById('back-to-dashboard');
-  if (backBtn) backBtn.href = isTeacher ? '/dashboard-teacher.html' : '/dashboard-student.html';
+  renderSidebar(isTeacher ? 'teacher' : 'student', 'setari');
 
   // ─── Dark mode toggle ─────────────────────────────────
   const darkModeToggle = document.getElementById('dark-mode-toggle');

@@ -61,7 +61,7 @@
 [data-theme="dark"] #cm-pane-elevi *,
 [data-theme="dark"] #cm-title,
 [data-theme="dark"] #cm-invite-code {
-  color: var(--text-main);
+  color: var(--text-main) !important;
 }
 
 /* Butoane de acțiuni rapide — fundal + text vizibile în dark mode */
@@ -98,17 +98,21 @@
 [data-theme="dark"] .stat-card,
 [data-theme="dark"] .widget-box,
 [data-theme="dark"] .empty-state,
-[data-theme="dark"] .class-card,
 [data-theme="dark"] .plan-card {
   background: var(--bg-card) !important;
   border-color: var(--border-color) !important;
   color: var(--text-main) !important;
 }
 
-[data-theme="dark"] .class-card *,
-[data-theme="dark"] .stat-card *,
-[data-theme="dark"] .widget-box * {
-  color: inherit;
+[data-theme="dark"] .class-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Titlul cardului e scris cu culoare fixă (#1e293b) direct din JS — în dark mode
+   fundalul cardului e tot #1e293b, deci trebuie forțată o culoare deschisă aici */
+[data-theme="dark"] .class-card h3 {
+  color: var(--text-main) !important;
 }
 
 /* Modale */

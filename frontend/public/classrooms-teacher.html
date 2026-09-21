@@ -7,6 +7,7 @@
   <title>Codero - Classrooms</title>
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
   <script src="/js/theme-toggle.js"></script>
 </head>
 <body>
@@ -17,28 +18,12 @@
         <span class="logo-icon">&lt;/&gt;</span>
         <span class="logo-text">Codero</span>
       </div>
-      <nav class="nav-menu">
-        <a href="/dashboard-teacher.html" class="nav-item">
-          <span class="icon">🏠</span> Dashboard
-        </a>
-        <a href="/classrooms-teacher.html" class="nav-item active">
-          <span class="icon">🏫</span> Classrooms
-        </a>
-        <a href="/coming-soon.html?f=Cursuri" class="nav-item">
-          <span class="icon">📚</span> Cursuri
-        </a>
-        <a href="/settings.html" class="nav-item">
-          <span class="icon">⚙️</span> Setări
-        </a>
-      </nav>
+      <nav class="nav-menu" id="nav-menu"></nav>
     </aside>
 
     <div class="main-wrapper">
       <header class="top-header">
-        <div class="top-nav-links">
-          <a href="/dashboard-teacher.html" class="top-link">Dashboard</a>
-          <a href="/classrooms-teacher.html" class="top-link active">Classrooms</a>
-        </div>
+        <div class="top-nav-links"></div>
         <div class="user-profile">
           <div class="user-avatar">👤</div>
           <div class="user-info">
@@ -72,8 +57,8 @@
       <input type="text" id="class-title" placeholder="Nume Clasă" style="width:100%; margin-bottom:10px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
       <select id="class-type" style="width:100%; margin-bottom:16px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
         <option value="liceu">🏫 Liceu</option>
+        <option value="facultate">🏫 Facultate</option>
         <option value="optional">✨ Opțional</option>
-        <option value="club">🎯 Club</option>
         <option value="bacalaureat">🎓 Bacalaureat</option>
       </select>
       <div style="display:flex; gap:8px; justify-content:flex-end;">
@@ -131,6 +116,7 @@
     </div>
   </div>
 
+  <script src="/js/sidebar.js"></script>
   <script src="/js/classrooms-teacher.js"></script>
 </body>
 </html>

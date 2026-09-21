@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -6,6 +7,7 @@
   <title>Codero - Setări</title>
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
   <script src="/js/theme-toggle.js"></script>
 </head>
 <body>
@@ -16,21 +18,12 @@
         <span class="logo-icon">&lt;/&gt;</span>
         <span class="logo-text">Codero</span>
       </div>
-      <nav class="nav-menu">
-        <a href="#" id="back-to-dashboard" class="nav-item">
-          <span class="icon">🏠</span> Dashboard
-        </a>
-        <a href="#" class="nav-item active">
-          <span class="icon">⚙️</span> Setări
-        </a>
-      </nav>
+      <nav class="nav-menu" id="nav-menu"></nav>
     </aside>
 
     <div class="main-wrapper">
       <header class="top-header">
-        <div class="top-nav-links">
-          <span class="top-link active">Setări</span>
-        </div>
+        <div class="top-nav-links"></div>
         <div class="user-profile">
           <div class="user-avatar">👤</div>
           <div class="user-info">
@@ -78,6 +71,7 @@
     </div>
   </div>
 
+  <script src="/js/sidebar.js"></script>
   <script src="/js/settings.js"></script>
 </body>
 </html>
