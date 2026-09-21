@@ -251,6 +251,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-student.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
@@ -332,6 +333,9 @@
           if (response.ok && result.success) {
             editorConsole.style.color = "#4ade80";
             editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
+            if (typeof confetti === 'function') {
+              confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
             if (result.xpEarned > 0) alert(`Felicitări! Ai primit ${result.xpEarned} XP!`);
           } else {
             editorConsole.style.color = "#f87171";

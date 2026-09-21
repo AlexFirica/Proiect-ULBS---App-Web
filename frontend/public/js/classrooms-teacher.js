@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderSidebar('teacher', 'classrooms');
 
-  const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', club: '🎯 Club', bacalaureat: '🎓 Bacalaureat' };
+  const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', facultate: '🏫 Facultate', bacalaureat: '🎓 Bacalaureat' };
 
   async function loadClassrooms() {
     const res = await fetch('/api/classrooms', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -113,9 +113,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const cls = lastLoadedClassrooms.find(c => String(c.id) === String(id));
     cmInviteCode.textContent = cls?.invite_code ? `Cod invitație: ${cls.invite_code}` : '';
+    const copyBtn = document.getElementById('cm-copy-code-btn');
+    if (cls?.invite_code) {
+      copyBtn.style.display = 'inline-block';
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(cls.invite_code).then(() => {
+          copyBtn.textContent = '✅ Copiat!';
+          setTimeout(() => { copyBtn.textContent = '📋 Copiază'; }, 1500);
+        });
+      };
+    } else {
+      copyBtn.style.display = 'none';
+    }
     const homeworks = cls?.homeworks || [];
     cmHomeworkList.innerHTML = homeworks.length
-      ? homeworks.map(hw => `<li style="padding:10px; background:#f8fafc; border-radius:8px;">📝 ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)</li>`).join('')
+      ? homeworks.map(hw => `<li style="padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><span>📝 ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)</span>${deadlineBadge(hw.dueDate)}</li>`).join('')
       : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
 
     const matRes = await fetch(`/api/classrooms/${id}/materials`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -131,13 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
       cmXpLabel.textContent = '0 XP'; cmXpBar.style.width = '0%';
     } else {
       cmStudentsEmpty.style.display = 'none';
-      const totalXp = students.reduce((a, s) => a + (s.xp || 0), 0);
-      const pct = Math.min(100, Math.round((totalXp / (students.length * 100)) * 100));
+      const sortedStudents = [...students].sort((a, b) => (b.xp || 0) - (a.xp || 0));
+      const medals = ['🥇', '🥈', '🥉'];
+      const totalXp = sortedStudents.reduce((a, s) => a + (s.xp || 0), 0);
+      const pct = Math.min(100, Math.round((totalXp / (sortedStudents.length * 100)) * 100));
       cmXpLabel.textContent = `${totalXp} XP (clasă)`;
       cmXpBar.style.width = `${pct}%`;
-      cmStudentsTbody.innerHTML = students.map(s => `
+      cmStudentsTbody.innerHTML = sortedStudents.map((s, i) => `
         <tr style="border-bottom:1px solid #f1f5f9;">
-          <td style="padding:8px 6px;">${escapeHTML(s.name || s.email)}</td>
+          <td style="padding:8px 6px;">${medals[i] || `#${i + 1}`} ${escapeHTML(s.name || s.email)}</td>
           <td style="padding:8px 6px;">${s.xp || 0} XP</td>
           <td style="padding:8px 6px;">Nivel ${Math.floor((s.xp || 0) / 100) + 1}</td>
         </tr>`).join('');
@@ -149,4 +163,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function escapeHTML(str) {
   return String(str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+}
+
+function deadlineBadge(dueDate) {
+  if (!dueDate) return '';
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffMs = due - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffMs < 0) return `<span style="background:#fee2e2 !important; color:#b91c1c !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">Expirată</span>`;
+  if (diffDays <= 2) return `<span style="background:#fef3c7 !important; color:#b45309 !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">Expiră ${diffDays === 0 ? 'azi' : `în ${diffDays}z`}</span>`;
+  return `<span style="background:#e0e7ff !important; color:#4338ca !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">${diffDays}z rămase</span>`;
 }

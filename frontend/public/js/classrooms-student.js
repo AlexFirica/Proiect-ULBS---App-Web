@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let lastLoadedClassrooms = [];
   renderSidebar('student', 'classrooms');
-  const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', club: '🎯 Club', bacalaureat: '🎓 Bacalaureat' };
+  const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', facultate: '🏫 Facultate', bacalaureat: '🎓 Bacalaureat' };
 
   async function loadClassrooms() {
     const res = await fetch('/api/classrooms', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cls = lastLoadedClassrooms.find(c => String(c.id) === String(id));
     const homeworks = cls?.homeworks || [];
     cmHomeworkList.innerHTML = homeworks.length
-      ? homeworks.map(hw => `<li data-hwid="${hw._id}" class="cm-homework-item" style="padding:10px; background:${hw.isCompleted ? '#f0fdf4' : '#f8fafc'}; border-radius:8px; cursor:pointer;">${hw.isCompleted ? '✅' : '📝'} ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)</li>`).join('')
+      ? homeworks.map(hw => `<li data-hwid="${hw._id}" class="cm-homework-item" style="padding:10px; background:${hw.isCompleted ? '#f0fdf4' : '#f8fafc'}; border-radius:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;"><span>${hw.isCompleted ? '✅' : '📝'} ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)</span>${hw.isCompleted ? '' : deadlineBadge(hw.dueDate)}</li>`).join('')
       : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
 
     const matRes = await fetch(`/api/classrooms/${id}/materials`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -123,4 +123,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function escapeHTML(str) {
   return String(str || '').replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+}
+
+function deadlineBadge(dueDate) {
+  if (!dueDate) return '';
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffMs = due - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffMs < 0) return `<span style="background:#fee2e2 !important; color:#b91c1c !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">Expirată</span>`;
+  if (diffDays <= 2) return `<span style="background:#fef3c7 !important; color:#b45309 !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">Expiră ${diffDays === 0 ? 'azi' : `în ${diffDays}z`}</span>`;
+  return `<span style="background:#e0e7ff !important; color:#4338ca !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">${diffDays}z rămase</span>`;
 }

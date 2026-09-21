@@ -214,7 +214,7 @@ const submitCodeTask = async (req, res) => {
 
     await Submission.findOneAndUpdate(
       { homeworkId: homework._id, studentId },
-      { status: isCorrect ? 'passed' : 'failed', output: actualOutput, xpAwarded: xpEarned },
+      { status: isCorrect ? 'passed' : 'failed', output: actualOutput, xpAwarded: xpEarned, sourceCode },
       { upsert: true }
     );
 

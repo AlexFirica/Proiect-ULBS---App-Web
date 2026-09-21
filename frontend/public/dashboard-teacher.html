@@ -196,8 +196,8 @@
       <label style="font-size:13px; color:#64748b;">Tip classroom</label>
       <select id="class-type" style="width:100%; margin-bottom:16px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
         <option value="liceu">🏫 Liceu</option>
-        <option value="facultate">🏫 Facultate</option>
         <option value="optional">✨ Opțional</option>
+        <option value="facultate">🏫 Facultate</option>
         <option value="bacalaureat">🎓 Bacalaureat</option>
       </select>
       <div class="modal-actions" style="display:flex; gap:8px; justify-content:flex-end;">
@@ -214,6 +214,7 @@
         <div>
           <h3 id="cm-title" style="margin:0;">Nume classroom</h3>
           <span id="cm-invite-code" style="font-size:12px; opacity:0.85;"></span>
+          <button id="cm-copy-code-btn" style="display:none; background:rgba(255,255,255,0.2); border:none; color:white; font-size:11px; padding:3px 8px; border-radius:6px; margin-left:6px; cursor:pointer;">📋 Copiază</button>
         </div>
         <button id="cm-close" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">&times;</button>
       </div>
@@ -301,6 +302,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-teacher.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
@@ -382,6 +384,9 @@
           if (response.ok && result.success) {
             editorConsole.style.color = "#4ade80";
             editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
+            if (typeof confetti === 'function') {
+              confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
           } else {
             editorConsole.style.color = "#f87171";
             editorConsole.innerText = `❌ ${result.message}\n\n[Detalii]\nOutput obținut: ${result.output || '-'}\nOutput așteptat: ${result.expectedOutput || '-'}`;

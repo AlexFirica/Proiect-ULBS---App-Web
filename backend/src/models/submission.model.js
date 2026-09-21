@@ -4,6 +4,7 @@ const submissionSchema = new mongoose.Schema({
   homeworkId: { type: mongoose.Schema.Types.ObjectId, ref: 'Homework', required: true },
   studentId: { type: String, required: true },
   status: { type: String, enum: ['pending', 'passed', 'failed'], default: 'pending' },
+  sourceCode: String,
   output: String,
   xpAwarded: { type: Number, default: 0 }
 }, { timestamps: true });
