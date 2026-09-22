@@ -15,7 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', facultate: '🏫 Facultate', bacalaureat: '🎓 Bacalaureat' };
 
+  function showSkeletons() {
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('classrooms-grid').innerHTML = Array(4).fill('<div class="skeleton-card"></div>').join('');
+  }
+
   async function loadClassrooms() {
+    showSkeletons();
     const res = await fetch('/api/classrooms', { headers: { 'Authorization': `Bearer ${token}` } });
     if (res.status === 401) { localStorage.clear(); window.location.href = '/login.html'; return; }
     const classrooms = await res.json();
@@ -66,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('save-class-btn').addEventListener('click', async () => {
     const title = document.getElementById('class-title').value.trim();
     const type = document.getElementById('class-type').value;
-    if (!title) { alert('Introdu un nume pentru clasă!'); return; }
+    if (!title) { showToast('Introdu un nume pentru clasă!', 'error'); return; }
     const res = await fetch('/api/classrooms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -78,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
       createModal.setAttribute('hidden', ''); createModal.style.display = 'none';
       await loadClassrooms();
     } else {
-      alert(data.message || 'Eroare la crearea clasei.');
+      showToast(data.message || 'Eroare la crearea clasei.', 'error');
     }
   });
 

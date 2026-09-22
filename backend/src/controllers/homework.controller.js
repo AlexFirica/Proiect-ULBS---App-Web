@@ -192,14 +192,30 @@ const submitCodeTask = async (req, res) => {
 
     const studentId = req.user.id || req.user.userId;
 
-   const pistonRes = await axios.post(`${process.env.PISTON_API_URL}/execute`, {
-  language: 'c++',
-  version: '10.2.0',
-  files: [{ content: sourceCode }],
-  stdin: homework.testInput || ''
-});
+    const pistonRes = await axios.post(`${process.env.PISTON_API_URL}/execute`, {
+      language: 'c++',
+      version: '10.2.0',
+      files: [{ content: sourceCode }],
+      stdin: homework.testInput || ''
+    });
 
-    const actualOutput = (pistonRes.data.run.stdout || '').trim();
+    const { compile, run } = pistonRes.data;
+
+    // Eroare de compilare — nu mai calculăm corectitudinea, doar raportăm eroarea
+    if (compile && compile.code !== 0) {
+      await Submission.findOneAndUpdate(
+        { homeworkId: homework._id, studentId },
+        { status: 'failed', output: '', sourceCode },
+        { upsert: true }
+      );
+      return res.status(200).json({
+        success: false,
+        message: 'Codul nu compilează. Verifică erorile de mai jos.',
+        compileError: compile.stderr || compile.output || 'Eroare de compilare necunoscută.'
+      });
+    }
+
+    const actualOutput = (run.stdout || '').trim();
     const expectedOutput = (homework.expectedOutput || '').trim();
     const isCorrect = actualOutput === expectedOutput;
 
@@ -242,15 +258,24 @@ const testRunCode = async (req, res) => {
     }
 
     const pistonRes = await axios.post(`${process.env.PISTON_API_URL}/execute`, {
-  language: 'c++',
-  version: '10.2.0',
-  files: [{ content: sourceCode }],
-  stdin: customInput || ''
-});
+      language: 'c++',
+      version: '10.2.0',
+      files: [{ content: sourceCode }],
+      stdin: customInput || ''
+    });
 
-    const run = pistonRes.data.run;
+    const { compile, run } = pistonRes.data;
+
+    // Eroare de compilare (sintaxă greșită) — separată de output-ul normal
+    if (compile && compile.code !== 0) {
+      return res.status(200).json({
+        success: false,
+        compileError: compile.stderr || compile.output || 'Eroare de compilare necunoscută.',
+        output: null
+      });
+    }
+
     const output = run.stdout || run.stderr || '(fără output)';
-
     return res.status(200).json({ success: true, output, exitCode: run.code });
   } catch (error) {
     console.error('Eroare Piston (test-run):', error.message);

@@ -163,7 +163,8 @@
           <div style="background: #f8fafc; padding: 8px 15px; font-size: 13px; font-weight: bold; color: #64748b; border-bottom: 1px solid #e2e8f0;">
             Editor Cod (C++)
           </div>
-          <div id="monaco-container" style="flex: 1; width: 100%;"></div>
+          <div id="monaco-container" style="flex: 1; width: 100%; min-height: 0;"></div>
+          <div id="debug-terminal" style="display:none; flex-shrink:0; background:#1a0505; color:#fca5a5; font-family:monospace; font-size:12px; padding:10px 15px; max-height:150px; overflow-y:auto; border-top:2px solid #b91c1c; white-space:pre-wrap;"></div>
         </div>
         <div style="width: 420px; display: flex; flex-direction: column; background: #f8fafc; overflow-y: auto; padding: 15px; gap: 15px;">
           <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
@@ -303,6 +304,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
+  <script src="/js/toast.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-teacher.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
@@ -337,6 +339,8 @@
         if (!monacoEditorInstance) return;
         const code = monacoEditorInstance.getValue();
         const inputData = customInput.value;
+        const debugTerminal = document.getElementById('debug-terminal');
+        debugTerminal.style.display = 'none';
         editorConsole.style.color = "#38bdf8";
         editorConsole.innerText = "⏳ Se compilează și se rulează testul...";
         try {
@@ -349,7 +353,12 @@
             body: JSON.stringify({ sourceCode: code, customInput: inputData })
           });
           const result = await response.json();
-          if (response.ok && result.success) {
+          if (result.compileError) {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = "❌ Compilarea a eșuat. Vezi detalii în terminalul de debug de sub editor.";
+            debugTerminal.style.display = 'block';
+            debugTerminal.textContent = result.compileError;
+          } else if (response.ok && result.success) {
             editorConsole.style.color = "#4ade80";
             editorConsole.innerText = `✅ Test finalizat!\n\n${result.output}`;
           } else {
@@ -365,10 +374,12 @@
       submitCodeBtn.addEventListener('click', async () => {
         if (!monacoEditorInstance) return;
         if (!currentActiveHomeworkId) {
-          alert("Ești în Modul Liber (Sandbox). Deschide editorul dintr-o temă din Classroom pentru trimitere oficială!");
+          showToast("Ești în Modul Liber (Sandbox). Deschide editorul dintr-o temă din Classroom pentru trimitere oficială!", "info");
           return;
         }
         const code = monacoEditorInstance.getValue();
+        const debugTerminal = document.getElementById('debug-terminal');
+        debugTerminal.style.display = 'none';
         editorConsole.style.color = "#facc15";
         editorConsole.innerText = "⏳ Se evaluează soluția oficială pe server...";
         try {
@@ -381,7 +392,12 @@
             body: JSON.stringify({ sourceCode: code })
           });
           const result = await response.json();
-          if (response.ok && result.success) {
+          if (result.compileError) {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = "❌ Codul nu compilează. Vezi detalii în terminalul de debug de sub editor.";
+            debugTerminal.style.display = 'block';
+            debugTerminal.textContent = result.compileError;
+          } else if (response.ok && result.success) {
             editorConsole.style.color = "#4ade80";
             editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
             if (typeof confetti === 'function') {

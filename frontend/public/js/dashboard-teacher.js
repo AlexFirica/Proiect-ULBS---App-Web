@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = typeInput.value;
 
       if (!title) {
-        alert('Te rugăm să introduci un nume pentru clasă!');
+        showToast('Te rugăm să introduci un nume pentru clasă!', 'error');
         return;
       }
 
@@ -75,18 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
           createModal.setAttribute('hidden', '');
           createModal.style.display = 'none';
           await loadClassrooms();
+          showToast('Classroom creat cu succes!', 'success');
         } else {
-          alert(data.message || data.error || 'Eroare la crearea clasei.');
+          showToast(data.message || data.error || 'Eroare la crearea clasei.', 'error');
         }
       } catch (err) {
         console.error(err);
-        alert('Eroare la conectarea cu serverul.');
+        showToast('Eroare la conectarea cu serverul.', 'error');
       }
     });
   }
 
   // ─── Preluare + randare classrooms ───────────────────────────
+  function showSkeletons() {
+    const container = document.getElementById('classrooms-grid');
+    const emptyState = document.querySelector('.empty-state');
+    if (emptyState) emptyState.style.display = 'none';
+    if (container) {
+      container.innerHTML = Array(3).fill('<div class="skeleton-card"></div>').join('');
+    }
+  }
+
   async function loadClassrooms() {
+    showSkeletons();
     try {
       const res = await fetch('/api/classrooms', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -123,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const typeLabels = {
     liceu: '🏫 Liceu',
     optional: '✨ Opțional',
-    club: '🎯 Club',
+    facultate: '🏫 Facultate',
     bacalaureat: '🎓 Bacalaureat'
   };
 
@@ -287,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const titleInput = document.getElementById('cm-material-title');
       const fileInput = document.getElementById('cm-material-file');
       if (!titleInput.value.trim() || !fileInput.files[0]) {
-        alert('Completează titlul și alege un fișier.');
+        showToast('Completează titlul și alege un fișier.', 'error');
         return;
       }
       const formData = new FormData();
@@ -305,12 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
           titleInput.value = '';
           fileInput.value = '';
           await loadMaterials(currentClassroomId);
+          showToast('Material încărcat cu succes!', 'success');
         } else {
-          alert(data.message || 'Eroare la încărcarea materialului.');
+          showToast(data.message || 'Eroare la încărcarea materialului.', 'error');
         }
       } catch (err) {
         console.error(err);
-        alert('Eroare la conectarea cu serverul.');
+        showToast('Eroare la conectarea cu serverul.', 'error');
       }
     });
   }
@@ -318,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const quickAddMaterialBtn = document.getElementById('quick-add-material-btn');
   if (quickAddMaterialBtn) {
     quickAddMaterialBtn.addEventListener('click', () => {
-      alert('Deschide un classroom și mergi la tab-ul „Cursuri” pentru a încărca un material.');
+      showToast('Deschide un classroom și mergi la tab-ul „Cursuri” pentru a încărca un material.', 'info');
     });
   }
 
@@ -399,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dueDate = document.getElementById('hw-deadline').value;
 
       if (!title || !dueDate) {
-        alert('Titlul și termenul limită sunt obligatorii.');
+        showToast('Titlul și termenul limită sunt obligatorii.', 'error');
         return;
       }
 
@@ -424,12 +436,13 @@ document.addEventListener('DOMContentLoaded', () => {
           addHomeworkModal.style.display = 'none';
           await loadClassrooms();
           openClassroomModal(currentClassroomId, cmTitle.textContent);
+          showToast('Tema a fost adăugată!', 'success');
         } else {
-          alert(data.message || 'Eroare la crearea temei.');
+          showToast(data.message || 'Eroare la crearea temei.', 'error');
         }
       } catch (err) {
         console.error(err);
-        alert('Eroare la conectarea cu serverul.');
+        showToast('Eroare la conectarea cu serverul.', 'error');
       }
     });
   }

@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const codeInput = document.getElementById('invite-code-input');
       const invite_code = codeInput.value.trim();
       if (!invite_code) {
-        alert('Introdu codul de invitație!');
+        showToast('Introdu codul de invitație!', 'error');
         return;
       }
       try {
@@ -91,18 +91,29 @@ document.addEventListener('DOMContentLoaded', () => {
           joinModal.setAttribute('hidden', '');
           joinModal.style.display = 'none';
           await loadClassrooms();
+          showToast('Te-ai înscris cu succes în clasă!', 'success');
         } else {
-          alert(data.message || 'Cod invalid sau eroare la înscriere.');
+          showToast(data.message || 'Cod invalid sau eroare la înscriere.', 'error');
         }
       } catch (err) {
         console.error(err);
-        alert('Eroare la conectarea cu serverul.');
+        showToast('Eroare la conectarea cu serverul.', 'error');
       }
     });
   }
 
   // ─── Preluare + randare classrooms ───────────────────────────
+  function showSkeletons() {
+    const container = document.getElementById('classrooms-grid');
+    const emptyState = document.querySelector('.empty-state');
+    if (emptyState) emptyState.style.display = 'none';
+    if (container) {
+      container.innerHTML = Array(3).fill('<div class="skeleton-card"></div>').join('');
+    }
+  }
+
   async function loadClassrooms() {
+    showSkeletons();
     try {
       const res = await fetch('/api/classrooms', {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -154,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const typeLabels = {
     liceu: '🏫 Liceu',
     optional: '✨ Opțional',
-    club: '🎯 Club',
+    facultate: '🏫 Facultate',
     bacalaureat: '🎓 Bacalaureat'
   };
 

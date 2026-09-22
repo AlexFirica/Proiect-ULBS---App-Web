@@ -12,7 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSidebar('student', 'classrooms');
   const typeLabels = { liceu: '🏫 Liceu', optional: '✨ Opțional', facultate: '🏫 Facultate', bacalaureat: '🎓 Bacalaureat' };
 
+  function showSkeletons() {
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('classrooms-grid').innerHTML = Array(4).fill('<div class="skeleton-card"></div>').join('');
+  }
+
   async function loadClassrooms() {
+    showSkeletons();
     const res = await fetch('/api/classrooms', { headers: { 'Authorization': `Bearer ${token}` } });
     if (res.status === 401) { localStorage.clear(); window.location.href = '/login.html'; return; }
     const classrooms = await res.json();
@@ -62,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('join-class-btn').addEventListener('click', async () => {
     const invite_code = document.getElementById('invite-code-input').value.trim();
-    if (!invite_code) { alert('Introdu codul de invitație!'); return; }
+    if (!invite_code) { showToast('Introdu codul de invitație!', 'error'); return; }
     const res = await fetch('/api/classrooms/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -73,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       joinModal.setAttribute('hidden', ''); joinModal.style.display = 'none';
       await loadClassrooms();
     } else {
-      alert(data.message || 'Cod invalid.');
+      showToast(data.message || 'Cod invalid.', 'error');
     }
   });
 

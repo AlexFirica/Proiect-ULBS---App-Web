@@ -164,3 +164,30 @@ input:focus, textarea:focus, select:focus {
 .empty-icon {
   filter: grayscale(0.15);
 }
+
+/* ─── Skeleton loading (cât timp se încarcă datele) ───────────── */
+.skeleton-card {
+  background: #f1f5f9;
+  border-radius: 14px;
+  padding: 18px;
+  height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+.skeleton-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -150%;
+  width: 150%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+[data-theme="dark"] .skeleton-card {
+  background: #1e293b;
+}
+[data-theme="dark"] .skeleton-card::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+@keyframes skeleton-shimmer {
+  100% { left: 150%; }
+}
