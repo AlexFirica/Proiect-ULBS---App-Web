@@ -4,41 +4,36 @@ const axios = require('axios');
 const Submission = require('../models/submission.model');
 const User = require('../models/user.model');
 
-const { 
-  encryptAES, 
-  decryptAES, 
-  signDataECC, 
-  verifySignatureECC 
-} = require('../Utils/cryptoUtils'); // Ajustează calea după caz
+const {
+  encryptAES,
+  decryptAES,
+  signDataECC,
+  verifySignatureECC
+} = require('../Utils/cryptoUtils');
 
 // 1. Creează o temă nouă (Criptare AES + Semnare ECC + Asignare Classroom)
 const createHomework = async (req, res) => {
   try {
-    const { 
-      title, 
-      description, 
-      dueDate, 
-      subject, 
-      classroomId,     // <-- Preluăm ID-ul clasei din cerere
-      isCodingTask,    // <-- Flag pentru exercițiu de programare
-      testInput,       // <-- Datele ascunse de input pentru cin
-      expectedOutput,  // <-- Output-ul așteptat
-      xpReward         // <-- Punctele XP oferite
+    const {
+      title,
+      description,
+      dueDate,
+      subject,
+      classroomId,
+      isCodingTask,
+      testInput,
+      expectedOutput,
+      xpReward
     } = req.body;
 
     if (!title || !dueDate) {
       return res.status(400).json({ message: 'Titlul și data limită sunt obligatorii.' });
     }
-
     if (!classroomId) {
       return res.status(400).json({ message: 'ID-ul clasei (classroomId) este obligatoriu pentru a crea o temă.' });
     }
 
-    // Criptăm descrierea cu AES-256-GCM
     const encryptedDescription = encryptAES(description);
-
-    // Generăm semnătura ECC pe baza datelor importante ale temei
-    // Important: Includem și classroomId în șirul semnat pentru a proteja integritatea clasei!
     const payloadToSign = `${title}-${encryptedDescription}-${new Date(dueDate).toISOString()}`;
     const signature = signDataECC(payloadToSign);
 
@@ -47,9 +42,9 @@ const createHomework = async (req, res) => {
       description: encryptedDescription,
       dueDate,
       subject,
-      classroomId, // <-- Salvăm legătura cu clasa
+      classroomId,
       signature,
-      isCodingTask: isCodingTask !== undefined ? isCodingTask : true, // Implicit e task de cod
+      isCodingTask: isCodingTask !== undefined ? isCodingTask : true,
       testInput: testInput || "",
       expectedOutput: expectedOutput || "",
       xpReward: xpReward || 10
@@ -68,18 +63,12 @@ const getAllHomeworks = async (req, res) => {
   try {
     const homeworks = await Homework.find().sort({ dueDate: 1 });
 
-    // Procesăm fiecare temă din listă
     const processedHomeworks = homeworks.map(doc => {
       const homework = doc.toObject();
-
-      // Verificăm dacă tema a fost modificată direct în baza de date (folosind ECC)
       const payloadToVerify = `${homework.title}-${homework.description}-${homework.dueDate.toISOString()}`;
       const isIntegrityOk = verifySignatureECC(payloadToVerify, homework.signature);
-
-      // Decriptăm descrierea cu AES
       homework.description = decryptAES(homework.description);
-      homework.isSecureAndAuthentic = isIntegrityOk; // Indicator pentru frontend
-
+      homework.isSecureAndAuthentic = isIntegrityOk;
       return homework;
     });
 
@@ -89,7 +78,7 @@ const getAllHomeworks = async (req, res) => {
   }
 };
 
-// 3. Obține o singură temă după ID (Decriptare + Validare Integritate)
+// 3. Obține o singură temă după ID
 const getHomeworkById = async (req, res) => {
   try {
     const doc = await Homework.findById(req.params.id);
@@ -98,12 +87,9 @@ const getHomeworkById = async (req, res) => {
     }
 
     const homework = doc.toObject();
-
-    // Validare ECC
     const payloadToVerify = `${homework.title}-${homework.description}-${homework.dueDate.toISOString()}`;
     const isIntegrityOk = verifySignatureECC(payloadToVerify, homework.signature);
 
-    // Decriptare AES
     homework.description = decryptAES(homework.description);
     homework.isSecureAndAuthentic = isIntegrityOk;
 
@@ -117,18 +103,16 @@ const getHomeworkById = async (req, res) => {
   }
 };
 
-// 4. Actualizează o temă (Criptare nouă + Semnătură nouă)
+// 4. Actualizează o temă
 const updateHomework = async (req, res) => {
   try {
     const { title, description, dueDate, status, subject } = req.body;
 
-    // Pasul 1: Preluăm tema veche pentru a completa datele neschimbate
     const currentHomework = await Homework.findById(req.params.id);
     if (!currentHomework) {
       return res.status(404).json({ message: 'Tema nu a fost găsită.' });
     }
 
-    // Stabilim valorile finale (cele noi transmise sau cele vechi existente)
     const finalTitle = title || currentHomework.title;
     const finalDueDate = dueDate ? new Date(dueDate) : currentHomework.dueDate;
     const finalSubject = subject || currentHomework.subject;
@@ -139,7 +123,6 @@ const updateHomework = async (req, res) => {
       finalEncryptedDescription = encryptAES(description);
     }
 
-    // Generăm noua semnătură ECC pentru noile date consolidate
     const payloadToSign = `${finalTitle}-${finalEncryptedDescription}-${finalDueDate.toISOString()}`;
     const newSignature = signDataECC(payloadToSign);
 
@@ -165,7 +148,7 @@ const updateHomework = async (req, res) => {
   }
 };
 
-// 5. Șterge o temă (Rămâne neschimbat, nu necesită decriptare)
+// 5. Șterge o temă
 const deleteHomework = async (req, res) => {
   try {
     const deletedHomework = await Homework.findByIdAndDelete(req.params.id);
@@ -178,9 +161,7 @@ const deleteHomework = async (req, res) => {
   }
 };
 
-// 6. Evaluarea codului C++ trimis de elev
-// 6. Evaluarea codului (Mod Simulat pentru Testare)
-// 6. Evaluarea codului trimis de elev (execuție reală + XP condiționat)
+// 6. Evaluarea codului trimis de elev (execuție reală prin Piston + XP condiționat)
 const submitCodeTask = async (req, res) => {
   try {
     const { sourceCode } = req.body;
@@ -244,15 +225,16 @@ const submitCodeTask = async (req, res) => {
       xpEarned
     });
   } catch (error) {
-    console.error('Eroare Piston (submit):', error.message);
-    return res.status(500).json({ message: 'Eroare internă.', error: error.message });
+    console.error("Eroare Piston (submit):", error.message);
+    res.status(500).json({ message: 'Eroare internă.', error: error.message });
   }
 };
-// 7. Rulare de test (Fără interogarea bazei de date și fără XP)
-// 7. Rulare de test (execuție reală prin Piston)
+
+// 7. Rulare de test (execuție reală, cu input personalizat)
 const testRunCode = async (req, res) => {
   try {
     const { sourceCode, customInput } = req.body;
+
     if (!sourceCode) {
       return res.status(400).json({ success: false, message: 'Codul sursă lipsește.' });
     }
@@ -276,13 +258,17 @@ const testRunCode = async (req, res) => {
     }
 
     const output = run.stdout || run.stderr || '(fără output)';
-    return res.status(200).json({ success: true, output, exitCode: run.code });
+
+    return res.status(200).json({
+      success: true,
+      output,
+      exitCode: run.code
+    });
   } catch (error) {
-    console.error('Eroare Piston (test-run):', error.message);
+    console.error("Eroare Piston (test-run):", error.message);
     return res.status(500).json({ success: false, message: 'Eroare la compilare/execuție.' });
   }
 };
-// Nu uita să adaugi submitCodeTask în module.exports la final!
 
 module.exports = {
   createHomework,

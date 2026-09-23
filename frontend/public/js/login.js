@@ -4,9 +4,9 @@
 
 'use strict';
 
-let currentRole = 'profesor'; 
-let suRole      = null;       
-let suScore     = 0;          
+let currentRole = 'profesor';
+let suRole      = null;
+let suScore     = 0;
 
 function switchRole(rol) {
   currentRole = rol;
@@ -381,19 +381,20 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(loginBtn, false, 'Intră în cont');
 
         if (response.ok) {
-          // Salvăm token-ul și datele userului direct în localStorage
           if (data.token) {
             localStorage.setItem('token', data.token);
           }
           if (data.refreshToken) {
             localStorage.setItem('refreshToken', data.refreshToken);
           }
-          
+
           localStorage.setItem('user', JSON.stringify(data.user || data));
 
-          // Redirecționare către Dashboard
+          // Redirecționare pe baza rolului
           const role = (data.user?.role || '').toLowerCase();
-          window.location.href = (role === 'teacher' || role === 'profesor') ? '/dashboard-teacher.html' : '/dashboard-student.html';
+          window.location.href = (role === 'teacher' || role === 'profesor')
+            ? '/dashboard-teacher.html'
+            : '/dashboard-student.html';
         } else {
           alert(data.message || 'Autentificare eșuată!');
         }
@@ -401,6 +402,53 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(loginBtn, false, 'Intră în cont');
         console.error('Eroare conectare la backend:', error);
         alert('Nu se poate realiza conexiunea cu serverul Node.js.');
+      }
+    });
+  }
+
+  // ── Am uitat parola ─────────────────────────────────────────
+  const forgotLink = document.getElementById('forgot-link');
+  const forgotModal = document.getElementById('forgot-modal');
+
+  if (forgotLink && forgotModal) {
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('forgot-email-input').value = '';
+      forgotModal.style.display = 'flex';
+      forgotModal.removeAttribute('hidden');
+    });
+  }
+
+  const forgotCloseBtn = document.getElementById('forgot-close-btn');
+  if (forgotCloseBtn) {
+    forgotCloseBtn.addEventListener('click', () => {
+      forgotModal.setAttribute('hidden', '');
+      forgotModal.style.display = 'none';
+    });
+  }
+
+  const forgotSendBtn = document.getElementById('forgot-send-btn');
+  if (forgotSendBtn) {
+    forgotSendBtn.addEventListener('click', async () => {
+      const email = document.getElementById('forgot-email-input').value.trim();
+      if (!email) return;
+
+      setLoading(forgotSendBtn, true, 'Se trimite...');
+
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        setLoading(forgotSendBtn, false, 'Trimite');
+        alert(data.message || 'Dacă emailul există, vei primi instrucțiuni.');
+        forgotModal.setAttribute('hidden', '');
+        forgotModal.style.display = 'none';
+      } catch (err) {
+        setLoading(forgotSendBtn, false, 'Trimite');
+        alert('Eroare la conectarea cu serverul.');
       }
     });
   }

@@ -12,7 +12,7 @@ router.post('/:id/submit', protect, homeworkController.submitCodeTask);
 router.get('/:id', homeworkController.getHomeworkById);
 router.get('/', homeworkController.getAllHomeworks);
 router.post('/', protect, requireRole('teacher', 'profesor'), homeworkController.createHomework);
-router.put('/:id', homeworkController.updateHomework);
-router.delete('/:id', homeworkController.deleteHomework);
+router.put('/:id', protect, requireRole('teacher', 'profesor'), homeworkController.updateHomework);
+router.delete('/:id', protect, requireRole('teacher', 'profesor'), homeworkController.deleteHomework);
 
 module.exports = router;

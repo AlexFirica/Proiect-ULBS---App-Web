@@ -1,3 +1,4 @@
+// backend/src/models/submission.model.js
 const mongoose = require('mongoose');
 
 const submissionSchema = new mongoose.Schema({

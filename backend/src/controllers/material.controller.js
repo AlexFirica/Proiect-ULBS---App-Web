@@ -1,3 +1,4 @@
+// backend/src/controllers/material.controller.js
 const supabaseImport = require('../config/supabase');
 const supabase = supabaseImport.supabase || supabaseImport;
 

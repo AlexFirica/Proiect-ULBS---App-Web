@@ -1,12 +1,12 @@
 // backend/src/controllers/classroom.controller.js
-const supabase = require('../config/supabase');
+const supabaseImport = require('../config/supabase');
+const supabase = supabaseImport.supabase || supabaseImport;
 const crypto = require('crypto');
-const Homework = require('../models/homework.model'); // Importăm modelul tău de MongoDB pentru teme
+const Homework = require('../models/homework.model');
 const Submission = require('../models/submission.model');
-
 const User = require('../models/user.model');
 
-// 1. CREARE CLASĂ (POST /api/classrooms) - Neschimbat
+// 1. CREARE CLASĂ (POST /api/classrooms)
 const createClassroom = async (req, res) => {
   try {
     const { title, name, type } = req.body;
@@ -30,7 +30,7 @@ const createClassroom = async (req, res) => {
           name: classroomName,
           teacher_id: teacherId,
           invite_code: inviteCode,
-          type: type || 'liceu'   // valoare implicită validă din enum
+          type: type || 'liceu'
         }
       ])
       .select();
@@ -40,13 +40,12 @@ const createClassroom = async (req, res) => {
     }
 
     return res.status(201).json({ message: 'Clasă creată cu succes!', classroom: data[0] });
-
   } catch (err) {
     return res.status(500).json({ message: 'Eroare pe server.', error: err.message });
   }
 };
 
-// 2. OBȚINERE CLASE + TEMELE AFERENTE DIN MONGODB (GET /api/classrooms)
+// 2. OBȚINERE CLASE + TEMELE AFERENTE (GET /api/classrooms)
 const getClassrooms = async (req, res) => {
   try {
     if (!req.user) {
@@ -63,7 +62,7 @@ const getClassrooms = async (req, res) => {
 
     let classrooms;
 
-     if (isTeacherRole) {
+    if (isTeacherRole) {
       const { data, error } = await supabase.from('classrooms').select('*').eq('teacher_id', userId);
       if (error) {
         console.error('❌ Eroare Supabase la citire clase:', error);
@@ -125,6 +124,7 @@ const getClassrooms = async (req, res) => {
     return res.status(500).json({ message: 'Eroare server.', error: err.message });
   }
 };
+
 // 3. ÎNSCRIERE ÎN CLASĂ (POST /api/classrooms/join)
 const joinClassroom = async (req, res) => {
   try {
@@ -157,6 +157,7 @@ const joinClassroom = async (req, res) => {
   }
 };
 
+// 4. LISTĂ ELEVI ÎNSCRIȘI (GET /api/classrooms/:classroomId/students)
 const getClassroomStudents = async (req, res) => {
   try {
     const { classroomId } = req.params;
@@ -177,4 +178,33 @@ const getClassroomStudents = async (req, res) => {
   }
 };
 
-module.exports = { createClassroom, getClassrooms, joinClassroom, getClassroomStudents };
+// 5. ȘTERGERE CLASSROOM (DELETE /api/classrooms/:id)
+const deleteClassroom = async (req, res) => {
+  try {
+    const teacherId = req.user.supabaseId || req.user.id || req.user.userId;
+    const { data: classroom } = await supabase
+      .from('classrooms')
+      .select('teacher_id')
+      .eq('id', req.params.id)
+      .single();
+
+    if (!classroom || classroom.teacher_id !== teacherId) {
+      return res.status(403).json({ message: 'Nu ai voie să ștergi acest classroom.' });
+    }
+
+    const { error } = await supabase.from('classrooms').delete().eq('id', req.params.id);
+    if (error) return res.status(500).json({ message: 'Eroare la ștergere.', error: error.message });
+
+    return res.status(200).json({ message: 'Classroom șters cu succes.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Eroare server.', error: err.message });
+  }
+};
+
+module.exports = {
+  createClassroom,
+  getClassrooms,
+  joinClassroom,
+  getClassroomStudents,
+  deleteClassroom
+};

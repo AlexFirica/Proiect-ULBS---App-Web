@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     supabaseId: {
       type: String,
       unique: true,
-      sparse: true // Permite ca userii creați direct în aplicație (fără Supabase) să nu dea eroare de unicitate dacă e gol
+      sparse: true
     },
     name: {
       type: String,
@@ -29,13 +29,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'cursant'
     },
+    xp: {
+      type: Number,
+      default: 0
+    },
     isVerified: {
       type: Boolean,
       default: false
-    },
-        xp: {
-      type: Number,
-      default: 0
     },
     verificationToken: String,
     resetToken: String,
@@ -45,12 +45,10 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hook pre-save async: FĂRĂ parametrul `next()`
+// Hook pre-save async: hash-uiește parola doar dacă a fost modificată
 userSchema.pre('save', async function () {
-  // Dacă parola nu a fost modificată, ieșim direct
   if (!this.isModified('password')) return;
 
-  // Generăm hash-ul Argon2id
   this.password = await argon2.hash(this.password, {
     type: argon2.argon2id,
     memoryCost: 2 ** 16,

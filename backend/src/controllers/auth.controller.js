@@ -4,13 +4,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/user.model');
 
-// Import flexibil (suportă atât export direct, cât și export de tip obiect { supabase })
 const supabaseImport = require('../config/supabase');
 const supabase = supabaseImport.supabase || supabaseImport;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_temporar_dev_codeedu';
 
-// Normalizare roluri (română -> engleză)
 const normalizeRole = (inputRole) => {
   if (!inputRole) return 'student';
   const r = inputRole.toLowerCase();
@@ -39,11 +37,11 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Acest email este deja înregistrat.' });
     }
 
-    // A. Înregistrare în Supabase Auth
+    // A. Înregistrare în Supabase Auth (fără email de confirmare, fără rate limit)
     let supabaseUserId = null;
     try {
-      if (supabase && typeof supabase.auth?.signUp === 'function') {
-       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      if (supabase && typeof supabase.auth?.admin?.createUser === 'function') {
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: normalizedEmail,
           password: password,
           email_confirm: true,
@@ -51,7 +49,7 @@ const register = async (req, res) => {
         });
 
         if (authError) {
-          console.error('⚠️ Eroare Supabase Auth signUp:', authError.message);
+          console.error('⚠️ Eroare Supabase Auth createUser:', authError.message);
         } else if (authData?.user) {
           supabaseUserId = authData.user.id;
         }
@@ -60,20 +58,13 @@ const register = async (req, res) => {
       console.error('⚠️ Excepție la conectarea cu Supabase Auth:', spAuthErr.message);
     }
 
-    // B. Salvare în MongoDB
-    const userData = {
-    name,
-    email: normalizedEmail,
-    password,
-    role
-  };
+    // B. Salvare în MongoDB (fără supabaseId dacă e null, ca să nu strice indexul unic)
+    const userData = { name, email: normalizedEmail, password, role };
+    if (supabaseUserId) {
+      userData.supabaseId = supabaseUserId;
+    }
 
-  if (supabaseUserId) {
-    userData.supabaseId = supabaseUserId;
-  }
-
-  const newUser = new User(userData);
-
+    const newUser = new User(userData);
     await newUser.save();
     console.log('✅ Utilizator salvat în MongoDB cu ID-ul:', newUser._id);
 
@@ -83,7 +74,7 @@ const register = async (req, res) => {
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert([
-            { 
+            {
               id: supabaseUserId,
               full_name: name,
               email: normalizedEmail,
@@ -113,7 +104,7 @@ const register = async (req, res) => {
   }
 };
 
-// 2. LOGARE (Login) - FĂRĂ COOKIES, DOAR JSON RESPONSE
+// 2. LOGARE (Login)
 const login = async (req, res) => {
   try {
     const email = req.body.email || req.body.Email;
@@ -141,14 +132,13 @@ const login = async (req, res) => {
 
     const userRole = normalizeRole(user.role);
 
-    // Access Token (JWT)
     const accessToken = jwt.sign(
-      { 
-        id: user._id, 
-        userId: user._id, 
+      {
+        id: user._id,
+        userId: user._id,
         supabaseId: user.supabaseId,
-        email: user.email, 
-        role: userRole 
+        email: user.email,
+        role: userRole
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -158,17 +148,17 @@ const login = async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
-    // ❌ Fără res.cookie. Trimitem totul direct în JSON pentru localStorage
     return res.status(200).json({
       message: 'Logare reușită!',
       token: accessToken,
       refreshToken: refreshToken,
-      user: { 
-        id: user._id, 
+      user: {
+        id: user._id,
         supabaseId: user.supabaseId,
-        email: user.email, 
-        role: userRole, 
-        name: user.name || '' 
+        email: user.email,
+        role: userRole,
+        name: user.name || '',
+        xp: user.xp || 0
       }
     });
   } catch (error) {
@@ -184,29 +174,25 @@ const verify = async (req, res) => {
 
   try {
     const user = await User.findOne({ verificationToken: token });
-
     if (!user) {
       return res.status(400).json({ message: 'Token invalid sau deja verificat.' });
     }
-
     user.isVerified = true;
     user.verificationToken = undefined;
     await user.save();
-
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login.html?verified=true`);
   } catch (error) {
     return res.status(500).json({ message: 'Eroare la verificare.', error: error.message });
   }
 };
 
-// 4. Refresh Token (Adaptat pentru Bearer / JSON, fără cookies)
+// 4. Refresh Token
 const refresh = async (req, res) => {
   const oldRefreshToken = req.body.refreshToken || req.headers['x-refresh-token'];
   if (!oldRefreshToken) return res.status(401).json({ message: 'Sesiune lipsă.' });
 
   try {
     const user = await User.findOne({ refreshToken: oldRefreshToken });
-
     if (!user) {
       return res.status(401).json({ message: 'Sesiune invalidă sau expirată.' });
     }
@@ -218,13 +204,7 @@ const refresh = async (req, res) => {
     const userRole = normalizeRole(user.role);
 
     const access_token = jwt.sign(
-      { 
-        id: user._id, 
-        userId: user._id, 
-        supabaseId: user.supabaseId,
-        role: userRole, 
-        email: user.email 
-      },
+      { id: user._id, userId: user._id, supabaseId: user.supabaseId, role: userRole, email: user.email },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -238,7 +218,6 @@ const refresh = async (req, res) => {
 // 5. Logout
 const logout = async (req, res) => {
   try {
-    // Dacă utilizatorul trimite tokenul în header, îl putem decoda sau extrage userul
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
@@ -310,7 +289,7 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Token invalid sau expirat.' });
     }
 
-    user.password = new_password; 
+    user.password = new_password;
     user.resetToken = undefined;
     user.resetTokenExpires = undefined;
     user.refreshToken = undefined;
@@ -331,9 +310,10 @@ const getProfile = async (req, res) => {
   }
 };
 
+// 10. Date proaspete despre utilizatorul curent (folosit pentru XP live)
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id || req.user.userId).select('name email role xp');
+    const user = await User.findById(req.user.id || req.user.userId).select('name email role xp supabaseId');
     if (!user) return res.status(404).json({ message: 'Utilizator negăsit.' });
     return res.status(200).json({ user });
   } catch (error) {
@@ -341,6 +321,7 @@ const getMe = async (req, res) => {
   }
 };
 
+// 11. Schimbare parolă (din pagina de Setări)
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
