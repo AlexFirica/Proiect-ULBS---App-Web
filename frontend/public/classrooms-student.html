@@ -72,6 +72,7 @@
       <div style="display:flex; border-bottom:1px solid #e2e8f0;">
         <button class="cm-tab active" data-tab="teme" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📝 Teme</button>
         <button class="cm-tab" data-tab="cursuri" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📚 Cursuri</button>
+        <button class="cm-tab" data-tab="clasament" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">🏆 Clasament</button>
       </div>
       <div style="padding:20px; overflow-y:auto; flex:1;">
         <div id="cm-pane-teme">
@@ -79,6 +80,18 @@
         </div>
         <div id="cm-pane-cursuri" hidden>
           <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+        <div id="cm-pane-clasament" hidden>
+          <table style="width:100%; border-collapse:collapse; font-size:14px;">
+            <thead>
+              <tr style="text-align:left; border-bottom:2px solid #e2e8f0; color:#64748b;">
+                <th style="padding:8px 6px;">Elev</th>
+                <th style="padding:8px 6px;">XP</th>
+                <th style="padding:8px 6px;">Nivel</th>
+              </tr>
+            </thead>
+            <tbody id="cm-leaderboard-tbody"></tbody>
+          </table>
         </div>
       </div>
     </div>

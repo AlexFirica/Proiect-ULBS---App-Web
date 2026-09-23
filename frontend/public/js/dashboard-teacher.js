@@ -194,6 +194,30 @@ document.addEventListener('DOMContentLoaded', () => {
     classroomModal.style.display = 'none';
   });
 
+  const cmDeleteClassroomBtn = document.getElementById('cm-delete-classroom-btn');
+  if (cmDeleteClassroomBtn) {
+    cmDeleteClassroomBtn.addEventListener('click', async () => {
+      if (!confirm('Sigur vrei să ștergi acest classroom? Toate temele și materialele asociate vor rămâne, dar clasa dispare definitiv. Acțiunea nu poate fi anulată.')) return;
+      try {
+        const res = await fetch(`/api/classrooms/${currentClassroomId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          showToast('Classroom șters cu succes.', 'success');
+          classroomModal.setAttribute('hidden', '');
+          classroomModal.style.display = 'none';
+          await loadClassrooms();
+        } else {
+          const data = await res.json();
+          showToast(data.message || 'Eroare la ștergerea classroom-ului.', 'error');
+        }
+      } catch (err) {
+        showToast('Eroare la conectarea cu serverul.', 'error');
+      }
+    });
+  }
+
   document.querySelectorAll('.cm-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.cm-tab').forEach(t => t.classList.remove('active'));
@@ -230,7 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ? homeworks.map(hw => `
           <li data-hwid="${hw._id}" class="cm-homework-item" style="padding:10px; background:#f8fafc; border-radius:8px; cursor:pointer; transition:background 0.15s ease; display:flex; justify-content:space-between; align-items:center;">
             <span>📝 ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)</span>
-            ${deadlineBadge(hw.dueDate)}
+            <span style="display:flex; align-items:center; gap:8px;">
+              ${deadlineBadge(hw.dueDate)}
+              <button class="delete-homework-btn" data-hwid="${hw._id}" title="Șterge tema" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px;">🗑️</button>
+            </span>
           </li>`).join('')
       : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
 
@@ -448,7 +475,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (cmHomeworkList) {
-    cmHomeworkList.addEventListener('click', (e) => {
+    cmHomeworkList.addEventListener('click', async (e) => {
+      const deleteBtn = e.target.closest('.delete-homework-btn');
+      if (deleteBtn) {
+        e.stopPropagation();
+        if (!confirm('Sigur vrei să ștergi această temă? Acțiunea nu poate fi anulată.')) return;
+        try {
+          const res = await fetch(`/api/homeworks/${deleteBtn.dataset.hwid}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            showToast('Tema a fost ștearsă.', 'success');
+            await loadClassrooms();
+            openClassroomModal(currentClassroomId, cmTitle.textContent);
+          } else {
+            const data = await res.json();
+            showToast(data.message || 'Eroare la ștergerea temei.', 'error');
+          }
+        } catch (err) {
+          showToast('Eroare la conectarea cu serverul.', 'error');
+        }
+        return;
+      }
+
       const item = e.target.closest('.cm-homework-item');
       if (!item) return;
       classroomModal.setAttribute('hidden', '');

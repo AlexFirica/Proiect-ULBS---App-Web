@@ -226,6 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
       tab.classList.add('active');
       document.getElementById('cm-pane-teme').hidden = tab.dataset.tab !== 'teme';
       document.getElementById('cm-pane-cursuri').hidden = tab.dataset.tab !== 'cursuri';
+      document.getElementById('cm-pane-clasament').hidden = tab.dataset.tab !== 'clasament';
+      if (tab.dataset.tab === 'clasament') loadLeaderboard(currentClassroomId);
     });
   });
 
@@ -263,6 +265,35 @@ document.addEventListener('DOMContentLoaded', () => {
         : '<li style="color:#94a3b8;">Niciun material încărcat.</li>';
     } catch (err) {
       console.error('Eroare la încărcarea materialelor:', err);
+    }
+  }
+
+  async function loadLeaderboard(classroomId) {
+    const tbody = document.getElementById('cm-leaderboard-tbody');
+    tbody.innerHTML = '<tr><td colspan="3" style="padding:10px; color:#94a3b8;">Se încarcă...</td></tr>';
+    try {
+      const res = await fetch(`/api/classrooms/${classroomId}/students`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const students = await res.json();
+      if (!Array.isArray(students) || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="padding:10px; color:#94a3b8;">Niciun elev înscris încă.</td></tr>';
+        return;
+      }
+      const sorted = [...students].sort((a, b) => (b.xp || 0) - (a.xp || 0));
+      const medals = ['🥇', '🥈', '🥉'];
+      tbody.innerHTML = sorted.map((s, i) => {
+        const isMe = (s.email && s.email === user.email) || (s.name && s.name === user.name);
+        return `
+        <tr style="border-bottom:1px solid #f1f5f9; ${isMe ? 'background:#eef2ff; font-weight:700;' : ''}">
+          <td style="padding:8px 6px;">${medals[i] || `#${i + 1}`} ${escapeHTML(s.name || s.email)}${isMe ? ' (tu)' : ''}</td>
+          <td style="padding:8px 6px;">${s.xp || 0} XP</td>
+          <td style="padding:8px 6px;">Nivel ${Math.floor((s.xp || 0) / 100) + 1}</td>
+        </tr>`;
+      }).join('');
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="3" style="padding:10px; color:#94a3b8;">Eroare la încărcare.</td></tr>';
+      console.error('Eroare la încărcarea clasamentului:', err);
     }
   }
 

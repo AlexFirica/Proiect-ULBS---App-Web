@@ -40,4 +40,29 @@ function renderSidebar(role, activeKey) {
       <a href="${link.href}" class="top-link${link.key === activeKey ? ' active' : ''}">${link.label}</a>
     `).join('');
   }
+
+  // Buton de logout, în zona de profil din header
+  const userProfile = document.querySelector('.user-profile');
+  if (userProfile && !document.getElementById('logout-btn')) {
+    const logoutBtn = document.createElement('button');
+    logoutBtn.id = 'logout-btn';
+    logoutBtn.title = 'Deconectare';
+    logoutBtn.innerHTML = '🚪';
+    logoutBtn.style.cssText = 'background:none; border:none; font-size:18px; cursor:pointer; margin-left:10px; padding:6px 10px; border-radius:8px;';
+    logoutBtn.addEventListener('click', async () => {
+      if (!confirm('Sigur vrei să te deconectezi?')) return;
+      const token = localStorage.getItem('token');
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (e) {
+        console.error('Eroare la logout:', e);
+      }
+      localStorage.clear();
+      window.location.href = '/login.html';
+    });
+    userProfile.appendChild(logoutBtn);
+  }
 }
