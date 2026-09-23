@@ -1,13 +1,8 @@
 // backend/src/middleware/rateLimiter.js
 const rateLimit = require('express-rate-limit');
-const { RedisStore } = require('rate-limit-redis');
-const redisClient = require('../config/redis');
 
 const createLimiter = (windowMs, max, message) => {
     return rateLimit({
-        store: new RedisStore({
-            sendCommand: (...args) => redisClient.sendCommand(args),
-        }),
         windowMs, // Timpul de monitorizare (ex: 15 minute)
         max,      // Numărul maxim de cereri permise în acest interval
         message: { message },
