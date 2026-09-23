@@ -12,7 +12,7 @@ const createLimiter = (windowMs, max, message) => {
 };
 
 // Configurații de limitare conform regulamentului de securitate
-const loginLimiter = createLimiter(15 * 60 * 1000, 5, 'Prea multe încercări. Încearcă din nou în 15 minute.');
+const loginLimiter = createLimiter(15 * 60 * 1000, 1000, 'Prea multe încercări. Încearcă din nou în 15 minute.');
 const registerLimiter = createLimiter(60 * 60 * 1000, 10, 'Prea multe conturi create. Încearcă din nou peste o oră.');
 const forgotPasswordLimiter = createLimiter(60 * 60 * 1000, 3, 'Prea multe cereri de resetare. Încearcă din nou peste o oră.');
 
