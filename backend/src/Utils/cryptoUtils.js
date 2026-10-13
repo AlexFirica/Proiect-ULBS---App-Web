@@ -2,9 +2,13 @@
 const crypto = require('crypto');
 
 // 1. CONFIGURARE AES-256-GCM (Symmetric)
-// În producție, cheia trebuie să fie salvată securizat în fișierul .env (exact 32 de caractere)
-const AES_SECRET = 'o-cheie-secreta-de-32-caractere!'; 
+// Calea către cheia secretă din environment
+const AES_SECRET = process.env.AES_SECRET;
 const AES_KEY = crypto.scryptSync(AES_SECRET, 'salt-unic', 32);
+// Validare crucială înainte de a folosi cheia
+if (!AES_SECRET || AES_SECRET.length !== 32) {
+    throw new Error('FATAL ERROR: AES_SECRET nu este definit în .env sau nu are exact 32 de caractere.');
+}
 
 // Criptează textul folosind AES-256-GCM
 function encryptAES(text) {
