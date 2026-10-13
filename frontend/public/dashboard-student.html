@@ -1,0 +1,423 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Dashboard Elev</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
+  <script src="/js/theme-toggle.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+
+      <div class="plan-card">
+        <span class="plan-badge">Planul tău</span>
+        <h4>Cont Elev</h4>
+        <p>Ai acces la toate classroom-urile tale.</p>
+      </div>
+
+      <nav class="nav-menu" id="nav-menu"></nav>
+
+      <div class="upgrade-card">
+        <div class="crown-icon">👑</div>
+        <h4>Codero Premium</h4>
+        <p>Deblochează cursuri interactive și materiale exclusive.</p>
+        <button class="btn-upgrade">Află mai multe &rarr;</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-wrapper">
+
+      <!-- TOP NAVIGATION BAR -->
+      <header class="top-header">
+        <div class="top-nav-links"></div>
+
+        <div class="user-profile">
+          <button class="bell-btn"></button>
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <main class="content-body">
+
+        <!-- LEFT/CENTER COLUMN -->
+        <section class="primary-column">
+          <div class="welcome-banner">
+            <h2>Bun venit, 👋</h2>
+            <p>Iată o privire de ansamblu asupra activității tale.</p>
+          </div>
+
+          <div id="student-xp-card" style="background:white; border:1px solid #e2e8f0; border-radius:14px; padding:18px; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <strong>Nivelul tău</strong>
+              <span id="student-level-label" style="font-weight:700; color:#4f46e5;">Nivel 1</span>
+            </div>
+            <div style="background:#e2e8f0; border-radius:999px; height:12px; overflow:hidden;">
+              <div id="student-xp-bar" style="background:linear-gradient(90deg,#6366f1,#8b5cf6); height:100%; width:0%; transition:width 0.4s ease;"></div>
+            </div>
+            <div style="font-size:12px; color:#64748b; margin-top:6px;" id="student-xp-label">0 XP</div>
+          </div>
+
+          <!-- CLASSROOMS SECTION HEADER -->
+          <div class="section-header" style="display:flex; align-items:center; justify-content:space-between;">
+            <h3>Classrooms</h3>
+            <button class="btn-primary" id="open-join-modal-btn">🔑 Intră într-o clasă</button>
+          </div>
+
+          <!-- EMPTY CLASSROOMS STATE -->
+          <div class="empty-state">
+            <div class="empty-icon">🏫</div>
+            <h4>Nu ești înscris în niciun classroom</h4>
+            <p>Introdu codul de invitație primit de la profesor pentru a te alătura unei clase.</p>
+            <button class="btn-primary" id="open-join-modal-btn-2">🔑 Intră într-o clasă</button>
+          </div>
+
+          <div id="classrooms-grid" class="classrooms-grid"></div>
+
+          <!-- OVERVIEW STATS -->
+          <div class="overview-section">
+            <h3>Prezentare generală</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-icon icon-purple">📚</span>
+                <div>
+                  <h4 id="stat-total-classrooms">0</h4>
+                  <p>Classroom-uri</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon icon-blue">📄</span>
+                <div>
+                  <h4 id="stat-pending-homeworks">0</h4>
+                  <p>Teme de rezolvat</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon icon-green">✅</span>
+                <div>
+                  <h4 id="stat-completed-homeworks">0</h4>
+                  <p>Teme rezolvate</p>
+                </div>
+              </div>
+              <div class="stat-card">
+                <span class="stat-icon icon-orange">⭐</span>
+                <div>
+                  <h4 id="stat-total-xp">0</h4>
+                  <p>XP total</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR COLUMN -->
+        <aside class="secondary-column">
+
+          <div class="widget-box">
+            <h4>Acțiuni rapide</h4>
+            <ul class="quick-actions">
+              <li><button class="action-btn" id="quick-join-btn">🔑 Intră într-o clasă</button></li>
+              <li><button class="action-btn" onclick="document.getElementById('open-editor-btn').click()">💻 Deschide compilator</button></li>
+              <li><button class="action-btn" onclick="window.location.href='/coming-soon.html?f=Calendar'">📅 Vezi calendar</button></li>
+            </ul>
+          </div>
+
+          <div class="widget-box">
+            <div class="widget-header">
+              <h4>Calendar</h4>
+              <a href="/coming-soon.html?f=Calendar" class="link-small">Vezi tot</a>
+            </div>
+            <div class="empty-widget-state">
+              <p>Nu ai nicio activitate programată.</p>
+            </div>
+          </div>
+
+          <div class="widget-box">
+            <div class="widget-header">
+              <h4>Noutăți de la Codero</h4>
+              <a href="/coming-soon.html?f=Noutăți" class="link-small">Vezi toate</a>
+            </div>
+          </div>
+
+        </aside>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- MODAL EDITOR DE COD (MONACO) -->
+  <div id="editor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; width: 90%; height: 85%; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+      <div style="background: #1e293b; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="modal-homework-title" style="margin: 0; font-size: 18px;">💻 Editor C++ - Evaluare Temă</h3>
+        <button id="close-editor-btn" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <div style="display: flex; flex: 1; overflow: hidden;">
+        <div style="flex: 1; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0;">
+          <div style="background: #f8fafc; padding: 8px 15px; font-size: 13px; font-weight: bold; color: #64748b; border-bottom: 1px solid #e2e8f0;">
+            Editor Cod (C++)
+          </div>
+          <div id="monaco-container" style="flex: 1; width: 100%; min-height: 0;"></div>
+          <div id="debug-terminal" style="display:none; flex-shrink:0; background:#1a0505; color:#fca5a5; font-family:monospace; font-size:12px; padding:10px 15px; max-height:150px; overflow-y:auto; border-top:2px solid #b91c1c; white-space:pre-wrap;"></div>
+        </div>
+        <div style="width: 420px; display: flex; flex-direction: column; background: #f8fafc; overflow-y: auto; padding: 15px; gap: 15px;">
+          <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <h4 id="homework-title-text" style="margin: 0 0 8px 0; color: #1e293b; font-size: 15px;">Mod Liber (Sandbox)</h4>
+            <p id="homework-desc-text" style="margin: 0; color: #475569; font-size: 13px; line-height: 1.4;">Poți rula orice cod dorești.</p>
+          </div>
+          <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <label for="custom-input" style="font-weight: bold; font-size: 13px; color: #1e293b; display: block; margin-bottom: 5px;">
+              🧪 Date de intrare (Custom Input):
+            </label>
+            <textarea id="custom-input" rows="3" placeholder="Scrie numerele pentru test..." style="width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; padding: 8px; font-family: monospace; font-size: 12px; resize: vertical; box-sizing: border-box;"></textarea>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button id="test-code-btn" style="flex: 1; background-color: #3b82f6; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">Testează</button>
+              <button id="submit-code-btn" style="flex: 1; background-color: #10b981; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">Trimite Final</button>
+            </div>
+          </div>
+          <div style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; flex: 1; min-height: 120px; overflow-y: auto; white-space: pre-wrap;" id="editor-console">
+// Aici vor apărea rezultatele execuției...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ÎNSCRIERE ÎN CLASĂ -->
+  <div id="join-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; width:90%; max-width:400px; border-radius:12px; padding:24px;">
+      <h3 style="margin-top:0;">Înscrie-te într-o clasă</h3>
+      <p style="color:#64748b; font-size:14px; margin-top:-8px;">Introdu codul de invitație primit de la profesor.</p>
+      <input type="text" id="invite-code-input" placeholder="Ex: 47EE5F" style="width:100%; margin-bottom:16px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; text-transform:uppercase; letter-spacing:0.05em; font-family:monospace;">
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="join-modal-close" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
+        <button id="join-class-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer;">Înscrie-mă</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CLASSROOM (detalii, elev) -->
+  <div id="classroom-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; width:92%; max-width:680px; max-height:85vh; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white;">
+        <h3 id="cm-title" style="margin:0;">Nume classroom</h3>
+        <button id="cm-close" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">&times;</button>
+      </div>
+
+      <div style="display:flex; border-bottom:1px solid #e2e8f0;">
+        <button class="cm-tab active" data-tab="teme" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📝 Teme</button>
+        <button class="cm-tab" data-tab="cursuri" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📚 Cursuri</button>
+        <button class="cm-tab" data-tab="clasament" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">🏆 Clasament</button>
+      </div>
+
+      <div style="padding:20px; overflow-y:auto; flex:1;">
+        <div id="cm-pane-teme">
+          <ul id="cm-homework-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+
+        <div id="cm-pane-cursuri" hidden>
+          <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+
+        <div id="cm-pane-clasament" hidden>
+          <table style="width:100%; border-collapse:collapse; font-size:14px;">
+            <thead>
+              <tr style="text-align:left; border-bottom:2px solid #e2e8f0; color:#64748b;">
+                <th style="padding:8px 6px;">Elev</th>
+                <th style="padding:8px 6px;">XP</th>
+                <th style="padding:8px 6px;">Nivel</th>
+              </tr>
+            </thead>
+            <tbody id="cm-leaderboard-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VIZUALIZARE MATERIAL -->
+  <div id="material-view-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1200; align-items:center; justify-content:center;">
+    <div style="background:white; width:92%; max-width:900px; height:85vh; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="padding:14px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <h4 id="mv-title" style="margin:0;">Material</h4>
+        <div>
+          <a id="mv-download" href="#" target="_blank" style="margin-right:16px; color:#4f46e5; text-decoration:none; font-size:14px;">⬇ Descarcă</a>
+          <button id="mv-close" style="background:none; border:none; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+      </div>
+      <div id="mv-body" style="flex:1; overflow:auto; background:#f1f5f9;"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
+  <script src="/js/toast.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/dashboard-student.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+  <script>
+    let monacoEditorInstance = null;
+    let currentActiveHomeworkId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const closeEditorBtn = document.getElementById('close-editor-btn');
+      const editorModal = document.getElementById('editor-modal');
+      const testCodeBtn = document.getElementById('test-code-btn');
+      const submitCodeBtn = document.getElementById('submit-code-btn');
+      const customInput = document.getElementById('custom-input');
+      const editorConsole = document.getElementById('editor-console');
+      const homeworkTitleText = document.getElementById('homework-title-text');
+      const homeworkDescText = document.getElementById('homework-desc-text');
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('openSandbox') === '1') {
+        currentActiveHomeworkId = null;
+        homeworkTitleText.innerText = "Mod Liber (Sandbox)";
+        homeworkDescText.innerText = "Poți scrie și testa orice cod dorești. Trimiterea oficială este dezactivată în acest mod.";
+        editorModal.style.display = 'flex';
+        initMonaco();
+      }
+
+      closeEditorBtn.addEventListener('click', () => {
+        editorModal.style.display = 'none';
+      });
+
+      testCodeBtn.addEventListener('click', async () => {
+        if (!monacoEditorInstance) return;
+        const code = monacoEditorInstance.getValue();
+        const inputData = customInput.value;
+        const debugTerminal = document.getElementById('debug-terminal');
+        debugTerminal.style.display = 'none';
+        editorConsole.style.color = "#38bdf8";
+        editorConsole.innerText = "⏳ Se compilează și se rulează testul...";
+        try {
+          const response = await fetch('/api/homeworks/test-run', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ sourceCode: code, customInput: inputData })
+          });
+          const result = await response.json();
+          if (result.compileError) {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = "❌ Compilarea a eșuat. Vezi detalii în terminalul de debug de sub editor.";
+            debugTerminal.style.display = 'block';
+            debugTerminal.textContent = result.compileError;
+          } else if (response.ok && result.success) {
+            editorConsole.style.color = "#4ade80";
+            editorConsole.innerText = `✅ Test finalizat!\n\n${result.output}`;
+          } else {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = `❌ Eroare de execuție:\n${result.message || 'Verifică sintaxa codului.'}`;
+          }
+        } catch (error) {
+          editorConsole.style.color = "#f87171";
+          editorConsole.innerText = "❌ Eroare gravă de conexiune cu serverul.";
+        }
+      });
+
+      submitCodeBtn.addEventListener('click', async () => {
+        if (!monacoEditorInstance) return;
+        if (!currentActiveHomeworkId) {
+          showToast("Ești în Modul Liber (Sandbox). Pentru a trimite o temă oficială și a câștiga XP, deschide editorul dintr-o temă din Classroom!", "info");
+          return;
+        }
+        const code = monacoEditorInstance.getValue();
+        const debugTerminal = document.getElementById('debug-terminal');
+        debugTerminal.style.display = 'none';
+        editorConsole.style.color = "#facc15";
+        editorConsole.innerText = "⏳ Se evaluează soluția oficială pe server...";
+        try {
+          const response = await fetch(`/api/homeworks/${currentActiveHomeworkId}/submit`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ sourceCode: code })
+          });
+          const result = await response.json();
+          if (result.compileError) {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = "❌ Codul nu compilează. Vezi detalii în terminalul de debug de sub editor.";
+            debugTerminal.style.display = 'block';
+            debugTerminal.textContent = result.compileError;
+          } else if (response.ok && result.success) {
+            editorConsole.style.color = "#4ade80";
+            editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
+            if (typeof confetti === 'function') {
+              confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+            if (result.xpEarned > 0) showToast(`Felicitări! Ai primit ${result.xpEarned} XP!`, "success");
+          } else {
+            editorConsole.style.color = "#f87171";
+            editorConsole.innerText = `❌ ${result.message}\n\n[Detalii]\nOutput obținut: ${result.output || '-'}\nOutput așteptat: ${result.expectedOutput || '-'}`;
+          }
+          if (typeof window.reloadClassrooms === 'function') await window.reloadClassrooms();
+        } catch (error) {
+          editorConsole.style.color = "#f87171";
+          editorConsole.innerText = "❌ Eroare de conexiune cu serverul.";
+        }
+      });
+    });
+
+    function initMonaco() {
+      if (!monacoEditorInstance) {
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+        require(['vs/editor/editor.main'], function() {
+          monacoEditorInstance = monaco.editor.create(document.getElementById('monaco-container'), {
+            value: '#include <iostream>\n\nusing namespace std;\n\nint main() {\n    // Scrie codul tău aici\n    \n    return 0;\n}',
+            language: 'cpp',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            fontSize: 14
+          });
+        });
+      }
+    }
+
+    window.openEditorWithHomework = async function(hwId) {
+      currentActiveHomeworkId = hwId;
+      const editorModal = document.getElementById('editor-modal');
+      const homeworkTitleText = document.getElementById('homework-title-text');
+      const homeworkDescText = document.getElementById('homework-desc-text');
+      editorModal.style.display = 'flex';
+      initMonaco();
+      try {
+        const res = await fetch(`/api/homeworks/${hwId}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const homeworkData = await res.json();
+        if (res.ok) {
+          homeworkTitleText.innerText = homeworkData.title;
+          homeworkDescText.innerText = homeworkData.description;
+        } else {
+          homeworkTitleText.innerText = "Eroare";
+          homeworkDescText.innerText = "Nu s-au putut încărca detaliile temei.";
+        }
+      } catch (e) {
+        homeworkTitleText.innerText = "Eroare de rețea";
+        homeworkDescText.innerText = "Nu s-a putut contacta serverul.";
+      }
+    };
+  </script>
+</body>
+</html>

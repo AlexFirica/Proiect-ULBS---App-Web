@@ -1,0 +1,193 @@
+/* frontend/public/css/polish.css */
+/* Strat de îmbunătățiri vizuale — pur aditiv, nu schimbă structura sau comportamentul. */
+
+/* ─── Tranziții generale mai naturale ─────────────────────── */
+button, a, input, textarea, select {
+  transition: all 0.15s ease;
+}
+
+/* ─── Butoane ──────────────────────────────────────────────── */
+.btn-primary {
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.15);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  filter: brightness(1.05);
+}
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.2);
+}
+
+.btn-secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* Butoane generice din widget-uri / modale (fără clasă specifică) */
+button:not(.btn-primary):not(.btn-secondary):hover {
+  filter: brightness(0.97);
+}
+
+/* ─── Input-uri / select / textarea — focus mai clar ─────────── */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* ─── Sidebar — item activ mai elegant ────────────────────────── */
+.nav-item {
+  border-radius: 10px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.nav-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateX(2px);
+}
+.nav-item.active {
+  position: relative;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+}
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: #ffffff;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ─── Carduri — umbră și hover mai rafinate ───────────────────── */
+.class-card:hover {
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12) !important;
+}
+.stat-card, .widget-box {
+  transition: box-shadow 0.2s ease;
+}
+.stat-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Modale — fundal cu blur discret ─────────────────────────── */
+#create-modal, #classroom-modal, #add-homework-modal,
+#material-view-modal, #join-modal {
+  backdrop-filter: blur(3px);
+}
+#create-modal > div, #classroom-modal > div, #add-homework-modal > div,
+#material-view-modal > div, #join-modal > div {
+  animation: modal-pop-in 0.18s ease;
+}
+@keyframes modal-pop-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ─── Tab-uri din modalul de classroom ─────────────────────────── */
+.cm-tab {
+  transition: background 0.15s ease, color 0.15s ease;
+  border-bottom: 2px solid transparent !important;
+}
+.cm-tab.active {
+  border-bottom: 2px solid #4f46e5 !important;
+  color: #4f46e5 !important;
+}
+.cm-tab:hover:not(.active) {
+  background: #f8fafc;
+}
+[data-theme="dark"] .cm-tab:hover:not(.active) {
+  background: rgba(255,255,255,0.05);
+}
+
+/* ─── Liste (teme, materiale, elevi) — hover discret ──────────── */
+.cm-homework-item:hover,
+.cm-material-item:hover {
+  background: #eef2ff !important;
+  transform: translateX(2px);
+}
+[data-theme="dark"] .cm-homework-item:hover,
+[data-theme="dark"] .cm-material-item:hover {
+  background: #1e2a4a !important;
+}
+
+/* ─── Scrollbar personalizat ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  background-clip: content-box;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #475569;
+  background-clip: content-box;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+  background-clip: content-box;
+}
+
+/* ─── Progress bar-uri (XP) — mișcare mai vie ─────────────────── */
+#student-xp-bar, #cm-xp-bar {
+  background-size: 200% 100%;
+  animation: xp-shimmer 3s ease infinite;
+}
+@keyframes xp-shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ─── Toggle dark mode — animație ușoară pe iconiță ───────────── */
+.theme-switch .slider::before {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+}
+
+/* ─── Empty states — puțin mai respirabile ────────────────────── */
+.empty-state {
+  transition: opacity 0.2s ease;
+}
+.empty-icon {
+  filter: grayscale(0.15);
+}
+
+/* ─── Skeleton loading (cât timp se încarcă datele) ───────────── */
+.skeleton-card {
+  background: #f1f5f9;
+  border-radius: 14px;
+  padding: 18px;
+  height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+.skeleton-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -150%;
+  width: 150%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+[data-theme="dark"] .skeleton-card {
+  background: #1e293b;
+}
+[data-theme="dark"] .skeleton-card::after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+}
+@keyframes skeleton-shimmer {
+  100% { left: 150%; }
+}

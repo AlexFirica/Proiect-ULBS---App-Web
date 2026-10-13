@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Classrooms</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
+  <script src="/js/theme-toggle.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+      <nav class="nav-menu" id="nav-menu"></nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="top-nav-links"></div>
+        <div class="user-profile">
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body" style="display:block; padding:28px 32px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+          <h2 style="margin:0;">Toate Classroom-urile tale</h2>
+          <button class="btn-primary" id="creeaza_classroom1">+ Creează classroom</button>
+        </div>
+
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">🏫</div>
+          <h4>Nu ai creat niciun classroom încă</h4>
+          <p>Începe prin a crea prima ta clasă.</p>
+        </div>
+
+        <div id="classrooms-grid" class="classrooms-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px;"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL CREARE CLASSROOM -->
+  <div id="create-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; width:90%; max-width:460px; border-radius:12px; padding:24px;">
+      <h3 style="margin-top:0;">Creează un classroom</h3>
+      <input type="text" id="class-title" placeholder="Nume Clasă" style="width:100%; margin-bottom:10px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+      <select id="class-type" style="width:100%; margin-bottom:16px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+        <option value="liceu">🏫 Liceu</option>
+        <option value="optional">✨ Opțional</option>
+        <option value="facultate">🏫 Facultate</option>
+        <option value="bacalaureat">🎓 Bacalaureat</option>
+      </select>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" id="close-modal-btn" class="btn-secondary">Anulează</button>
+        <button type="button" id="save-class-btn" class="btn-primary">Creează</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CLASSROOM (detalii) -->
+  <div id="classroom-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; width:92%; max-width:680px; max-height:85vh; border-radius:14px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white;">
+        <div>
+          <h3 id="cm-title" style="margin:0;">Nume classroom</h3>
+          <span id="cm-invite-code" style="font-size:12px; opacity:0.85;"></span>
+          <button id="cm-copy-code-btn" style="display:none; background:rgba(255,255,255,0.2); border:none; color:white; font-size:11px; padding:3px 8px; border-radius:6px; margin-left:6px; cursor:pointer;">📋 Copiază</button>
+        </div>
+        <button id="cm-delete-classroom-btn" title="Șterge classroom" style="background:rgba(239,68,68,0.25); border:none; color:white; font-size:13px; padding:6px 10px; border-radius:6px; cursor:pointer; margin-right:10px;">🗑️ Șterge</button>
+        <button id="cm-close" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">&times;</button>
+      </div>
+      <div id="cm-xp-section" style="padding:16px 24px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:#475569; margin-bottom:6px;">
+          <span>XP Classroom</span>
+          <span id="cm-xp-label">0 XP</span>
+        </div>
+        <div style="background:#e2e8f0; border-radius:999px; height:10px; overflow:hidden;">
+          <div id="cm-xp-bar" style="background:linear-gradient(90deg,#6366f1,#8b5cf6); height:100%; width:0%; transition:width 0.4s ease;"></div>
+        </div>
+      </div>
+      <div style="display:flex; border-bottom:1px solid #e2e8f0;">
+        <button class="cm-tab active" data-tab="teme" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📝 Teme</button>
+        <button class="cm-tab" data-tab="cursuri" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📚 Cursuri</button>
+        <button class="cm-tab" data-tab="elevi" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">👥 Elevi</button>
+      </div>
+      <div style="padding:20px; overflow-y:auto; flex:1;">
+        <div id="cm-pane-teme">
+          <ul id="cm-homework-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+        <div id="cm-pane-cursuri" hidden>
+          <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
+        </div>
+        <div id="cm-pane-elevi" hidden>
+          <table style="width:100%; border-collapse:collapse; font-size:14px;">
+            <thead>
+              <tr style="text-align:left; border-bottom:2px solid #e2e8f0; color:#64748b;">
+                <th style="padding:8px 6px;">Elev</th>
+                <th style="padding:8px 6px;">XP</th>
+                <th style="padding:8px 6px;">Nivel</th>
+              </tr>
+            </thead>
+            <tbody id="cm-students-tbody"></tbody>
+          </table>
+          <p id="cm-students-empty" style="color:#94a3b8; margin-top:12px;">Niciun elev înscris încă.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/toast.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/classrooms-teacher.js"></script>
+</body>
+</html>
