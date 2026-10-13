@@ -22,7 +22,7 @@
 ## Funcționalități
 
 ### Pentru profesori
-- Creare de classroom-uri (Liceu, Opțional, Club, Bacalaureat) cu **cod de invitație** generat automat
+- Creare de classroom-uri (Liceu, Opțional, Facultate, Bacalaureat) cu **cod de invitație** generat automat
 - Teme de programare cu **input și output așteptat**, deadline și recompensă XP configurabilă
 - Încărcare de materiale (PDF, imagini etc.) cu **previzualizare în aplicație**
 - Tabel cu elevii înscriși, XP și nivel, plus **clasament** pe classroom
