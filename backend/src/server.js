@@ -1,4 +1,6 @@
 // server.js (backend)
+// Importarea rutei pentru gamification
+const gamificationRoutes = require('./routes/gamification');  
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
@@ -27,6 +29,8 @@ app.use(express.json());
 
 const publicPath = path.join(__dirname, '../../frontend/public');
 app.use(express.static(publicPath));
+// Integrare rute gamification
+app.use('/api/gamification', gamificationRoutes);
 
 // Rute pagini HTML
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));

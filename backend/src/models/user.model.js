@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    level: {
+      type: Number,
+      default: 1
+    },
+    avatarConfig: {
+      type: Object,
+      default: {style:"bottts", seed:"default"}
+    },
     isVerified: {
       type: Boolean,
       default: false
@@ -66,6 +74,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
     return false;
   }
 };
+
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
