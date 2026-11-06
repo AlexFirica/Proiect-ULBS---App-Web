@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth.routes');
 const homeworkRoutes = require('./routes/homework.routes');
 const classroomRoutes = require('./routes/classroom.routes');
+const courseRoutes = require('./routes/course.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,12 +41,14 @@ app.get('/dashboard-student.html', (req, res) => res.sendFile(path.join(publicPa
 app.get('/classrooms-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-teacher.html')));
 app.get('/classrooms-student.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-student.html')));
 app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'settings.html')));
+app.get('/cursuri.html', (req, res) => res.sendFile(path.join(publicPath, 'cursuri.html')));
 app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
 
 // Rute API
 app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
+app.use('/api/courses', courseRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 
