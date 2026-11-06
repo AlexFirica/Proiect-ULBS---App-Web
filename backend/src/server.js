@@ -9,7 +9,8 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth.routes');
 const homeworkRoutes = require('./routes/homework.routes');
 const classroomRoutes = require('./routes/classroom.routes');
-const gamificationRoutes = require('./routes/gamification.routes'); 
+const gamificationRoutes = require('./routes/gamification.routes');
+const teacherRoutes = require('./routes/teacher.routes'); // 👈 Adăugat
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/teacher', teacherRoutes); // 👈 Adăugat
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 
