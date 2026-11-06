@@ -25,7 +25,7 @@ const localTranslations = {
     }
 };
 
-// Detectare inteligentă a limbii, indiferent cum e setată de i18n.js
+// Detectare inteligentă a limbii
 function getActiveLang() {
     const htmlLang = document.documentElement.lang;
     if (htmlLang && htmlLang.startsWith('en')) return 'en';
@@ -43,65 +43,76 @@ function forceCustomTranslations() {
 }
 
 function renderSidebar(role, activeKey) {
-  const t = localTranslations[getActiveLang()];
-  const isTeacher = role === 'teacher' || role === 'profesor';
-  const dashboardUrl = isTeacher ? '/dashboard-teacher.html' : '/dashboard-student.html';
-  const classroomsUrl = isTeacher ? '/classrooms-teacher.html' : '/classrooms-student.html';
+    const t = localTranslations[getActiveLang()];
+    const isTeacher = role === 'teacher' || role === 'profesor';
+    const dashboardUrl = isTeacher ? '/dashboard-teacher.html' : '/dashboard-student.html';
+    const classroomsUrl = isTeacher ? '/classrooms-teacher.html' : '/classrooms-student.html';
 
-  const links = [
-    { key: 'dashboard', href: dashboardUrl, icon: '🏠', label: t.nav_dashboard, i18n: 'nav_dashboard' },
-    { key: 'classrooms', href: classroomsUrl, icon: '🏫', label: t.nav_classrooms, i18n: 'nav_classrooms' },
-    { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', icon: '📚', label: t.nav_courses, i18n: 'nav_courses' },
-    { key: 'antrenament', href: '/antrenament.html', icon: '🧠', label: t.nav_training, i18n: 'nav_training' },
-    { key: 'mesaje', href: '/coming-soon.html?f=Mesaje', icon: '💬', label: t.nav_messages, i18n: 'nav_messages' },
-    { key: 'calendar', href: '/coming-soon.html?f=Calendar', icon: '📅', label: t.nav_calendar, i18n: 'nav_calendar' },
-    { key: 'fisiere', href: '/coming-soon.html?f=Fișierele mele', icon: '📁', label: t.nav_files, i18n: 'nav_files' },
-    { key: 'setari', href: '/settings.html', icon: '⚙️', label: t.nav_settings, i18n: 'nav_settings' }
-  ];
+    const links = [
+        { key: 'dashboard', href: dashboardUrl, icon: '🏠', label: t.nav_dashboard, i18n: 'nav_dashboard' },
+        { key: 'classrooms', href: classroomsUrl, icon: '🏫', label: t.nav_classrooms, i18n: 'nav_classrooms' },
+        { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', icon: '📚', label: t.nav_courses, i18n: 'nav_courses' },
+        { key: 'antrenament', href: '/antrenament.html', icon: '🧠', label: t.nav_training, i18n: 'nav_training' },
+        { key: 'mesaje', href: '/coming-soon.html?f=Mesaje', icon: '💬', label: t.nav_messages, i18n: 'nav_messages' },
+        { key: 'calendar', href: '/coming-soon.html?f=Calendar', icon: '📅', label: t.nav_calendar, i18n: 'nav_calendar' },
+        { key: 'fisiere', href: '/coming-soon.html?f=Fișierele mele', icon: '📁', label: t.nav_files, i18n: 'nav_files' },
+        { key: 'setari', href: '/settings.html', icon: '⚙️', label: t.nav_settings, i18n: 'nav_settings' }
+    ];
 
-  const container = document.getElementById('nav-menu');
-  if (container) {
-      container.innerHTML = links.map(link => `
-        <a href="${link.href}" class="nav-item${link.key === activeKey ? ' active' : ''}">
-          <span class="icon">${link.icon}</span> <span data-i18n="${link.i18n}">${link.label}</span>
-        </a>
-      `).join('') + `
-        <a href="${dashboardUrl}?openSandbox=1" class="nav-item" style="width: 100%; text-align: left; background: #4f46e5; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; padding: 12px 16px; font-weight: bold; display:block;">
-          <span class="icon">💻</span> <span data-i18n="nav_sandbox">${t.nav_sandbox}</span>
-        </a>
-      `;
-  }
+    // Randare meniu lateral (Sidebar)
+    const container = document.getElementById('nav-menu');
+    if (container) {
+        container.innerHTML = links.map(link => `
+            <a href="${link.href}" class="nav-item${link.key === activeKey ? ' active' : ''}">
+                <span class="icon">${link.icon}</span> <span data-i18n="${link.i18n}">${link.label}</span>
+            </a>
+        `).join('') + `
+            <a href="${dashboardUrl}?openSandbox=1" class="nav-item" style="width: 100%; text-align: left; background: #4f46e5; color: white; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; padding: 12px 16px; font-weight: bold; display:block;">
+                <span class="icon">💻</span> <span data-i18n="nav_sandbox">${t.nav_sandbox}</span>
+            </a>
+        `;
+    }
 
-  const topNav = document.querySelector('.top-nav-links');
-  if (topNav) {
-    topNav.innerHTML = links.filter(l => ['dashboard', 'classrooms', 'cursuri', 'antrenament'].includes(l.key))
-      .map(link => `<a href="${link.href}" class="top-link${link.key === activeKey ? ' active' : ''}" data-i18n="${link.i18n}">${link.label}</a>`).join('');
-  }
+    // Randare meniu de sus (Top Nav)
+    const topNav = document.querySelector('.top-nav-links');
+    if (topNav) {
+        topNav.innerHTML = links.filter(l => ['dashboard', 'classrooms', 'cursuri', 'antrenament'].includes(l.key))
+            .map(link => `<a href="${link.href}" class="top-link${link.key === activeKey ? ' active' : ''}" data-i18n="${link.i18n}">${link.label}</a>`)
+            .join('');
+    }
 
-  const userProfile = document.querySelector('.user-profile');
-  if (userProfile && !document.getElementById('logout-btn')) {
-    const logoutBtn = document.createElement('button');
-    logoutBtn.id = 'logout-btn';
-    logoutBtn.innerHTML = '🚪';
-    logoutBtn.style.cssText = 'background:none; border:none; font-size:18px; cursor:pointer; margin-left:10px; padding:6px 10px; border-radius:8px;';
-    logoutBtn.addEventListener('click', async () => {
-      if (!confirm(getActiveLang() === 'en' ? "Log out?" : "Deconectare?")) return;
-      try { await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }); } catch(e){}
-      localStorage.clear();
-      window.location.href = '/login.html';
-    });
-    userProfile.appendChild(logoutBtn);
-  }
+    // Adăugare buton de logout în profilul utilizatorului
+    const userProfile = document.querySelector('.user-profile');
+    if (userProfile && !document.getElementById('logout-btn')) {
+        const logoutBtn = document.createElement('button');
+        logoutBtn.id = 'logout-btn';
+        logoutBtn.innerHTML = '🚪';
+        logoutBtn.style.cssText = 'background:none; border:none; font-size:18px; cursor:pointer; margin-left:10px; padding:6px 10px; border-radius:8px;';
+        logoutBtn.addEventListener('click', async () => {
+            if (!confirm(getActiveLang() === 'en' ? "Log out?" : "Deconectare?")) return;
+            try { 
+                await fetch('/api/auth/logout', { 
+                    method: 'POST', 
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                }); 
+            } catch(e) {}
+            localStorage.clear();
+            window.location.href = '/login.html';
+        });
+        userProfile.appendChild(logoutBtn);
+    }
 
-  if (!document.querySelector('script[src="/js/avatar-icon.js"]')) {
-    const s = document.createElement('script');
-    s.src = '/js/avatar-icon.js';
-    document.body.appendChild(s);
-  }
-  
-  forceCustomTranslations();
+    // Încărcare dinamică avatar
+    if (!document.querySelector('script[src="/js/avatar-icon.js"]')) {
+        const s = document.createElement('script');
+        s.src = '/js/avatar-icon.js';
+        document.body.appendChild(s);
+    }
+    
+    forceCustomTranslations();
 }
 
+// Monitorizare schimbare limbă
 let __currentMonitorLang = getActiveLang();
 setInterval(() => {
     const activeL = getActiveLang();

@@ -9,7 +9,9 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth.routes');
 const homeworkRoutes = require('./routes/homework.routes');
 const classroomRoutes = require('./routes/classroom.routes');
-const gamificationRoutes = require('./routes/gamification.routes'); 
+const courseRoutes = require('./routes/course.routes');
+const gamificationRoutes = require('./routes/gamification.routes');
+const teacherRoutes = require('./routes/teacher.routes'); // 👈 Adăugat
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,13 +42,17 @@ app.get('/classrooms-teacher.html', (req, res) => res.sendFile(path.join(publicP
 app.get('/classrooms-student.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-student.html')));
 app.get('/avatar.html', (req, res) => res.sendFile(path.join(publicPath, 'avatar.html')));
 app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'settings.html')));
+app.get('/cursuri.html', (req, res) => res.sendFile(path.join(publicPath, 'cursuri.html')));
 app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
+app.get('/calendar.html', (req, res) => res.sendFile(path.join(publicPath, 'calendar.html')));
 
 // Rute API
 app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
+app.use('/api/courses', courseRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/teacher', teacherRoutes); // 👈 Adăugat
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 

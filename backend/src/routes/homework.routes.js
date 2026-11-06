@@ -9,8 +9,8 @@ router.post('/test-run', protect, homeworkController.testRunCode);
 
 // 2. Rutele cu parametri (vin DUPĂ cele fixe)
 router.post('/:id/submit', protect, homeworkController.submitCodeTask);
-router.get('/:id', homeworkController.getHomeworkById);
-router.get('/', homeworkController.getAllHomeworks);
+router.get('/:id', protect, homeworkController.getHomeworkById);
+router.get('/', protect, homeworkController.getAllHomeworks);
 router.post('/', protect, requireRole('teacher', 'profesor'), homeworkController.createHomework);
 router.put('/:id', protect, requireRole('teacher', 'profesor'), homeworkController.updateHomework);
 router.delete('/:id', protect, requireRole('teacher', 'profesor'), homeworkController.deleteHomework);

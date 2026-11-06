@@ -46,6 +46,26 @@ const homeworkSchema = new mongoose.Schema(
       type: Number,
       default: 10
     },
+    // Teste multiple (ascunse elevilor). Dacă lipsesc, se folosește perechea testInput/expectedOutput.
+    testCases: {
+      type: [
+        {
+          _id: false,
+          input: { type: String, default: '' },
+          output: { type: String, default: '' }
+        }
+      ],
+      default: []
+    },
+    // Legătura cu exercițiul din catalogul Supabase (tabela `exercises`), dacă tema vine de acolo
+    exerciseId: {
+      type: String,
+      default: null
+    },
+    chapter: {
+      type: String,
+      default: ''
+    },
     // Corectat la String pentru compatibilitate cu UUID-urile din Supabase
     classroomId: {
       type: String,

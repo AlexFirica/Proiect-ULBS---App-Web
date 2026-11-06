@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Calendar</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
+  <script src="/js/theme-toggle.js"></script>
+
+  <style>
+    /* Culori proprii calendarului, cu variantă pentru dark mode */
+    .cal-page, #day-modal {
+      --cal-surface: #ffffff;
+      --cal-border: #e2e8f0;
+      --cal-text: #0f172a;
+      --cal-muted: #64748b;
+      --cal-today: #eef2ff;
+      --cal-other-month: #f8fafc;
+    }
+    [data-theme="dark"] .cal-page,
+    [data-theme="dark"] #day-modal {
+      --cal-surface: #1e293b;
+      --cal-border: #334155;
+      --cal-text: #f1f5f9;
+      --cal-muted: #94a3b8;
+      --cal-today: #312e81;
+      --cal-other-month: #0f172a;
+    }
+
+    .cal-layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; align-items: start; }
+    @media (max-width: 960px) { .cal-layout { grid-template-columns: 1fr; } }
+
+    .cal-card {
+      background: var(--cal-surface);
+      border: 1px solid var(--cal-border);
+      border-radius: 12px;
+      color: var(--cal-text);
+    }
+
+    /* Bara de sus: titlu lună + butoane */
+    .cal-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .cal-toolbar h2 { margin: 0; text-transform: capitalize; }
+    .cal-nav { display: flex; gap: 8px; }
+    .cal-nav button {
+      padding: 8px 14px; border: 1px solid var(--cal-border); background: var(--cal-surface);
+      color: var(--cal-text); border-radius: 8px; cursor: pointer; font-weight: 600;
+    }
+    .cal-nav button:hover { border-color: #4f46e5; color: #4f46e5; }
+
+    /* Legenda culorilor */
+    .cal-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; font-size: 13px; color: var(--cal-muted); }
+    .cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .cal-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .cal-dot.done { background: #16a34a; }
+    .cal-dot.soon { background: #f59e0b; }
+    .cal-dot.late { background: #dc2626; }
+    .cal-dot.future { background: #4f46e5; }
+
+    /* Grila lunii */
+    .cal-weekdays, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .cal-weekdays div {
+      padding: 10px 6px; text-align: center; font-size: 12px; font-weight: 700;
+      color: var(--cal-muted); text-transform: uppercase; border-bottom: 1px solid var(--cal-border);
+    }
+    .cal-cell {
+      min-height: 96px; padding: 6px; border-right: 1px solid var(--cal-border);
+      border-bottom: 1px solid var(--cal-border); cursor: pointer; overflow: hidden;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-cell:hover { background: var(--cal-today); }
+    .cal-cell.other-month { background: var(--cal-other-month); opacity: .55; }
+    .cal-cell.today { background: var(--cal-today); }
+    .cal-daynum { font-size: 13px; font-weight: 600; color: var(--cal-text); }
+    .cal-cell.today .cal-daynum {
+      background: #4f46e5; color: #fff; width: 24px; height: 24px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    /* Etichetele (evenimentele) din celule și din liste */
+    .cal-ev {
+      font-size: 11px; padding: 2px 6px; border-radius: 4px; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-ev.done   { background: #16a34a; }
+    .cal-ev.soon   { background: #f59e0b; }
+    .cal-ev.late   { background: #dc2626; }
+    .cal-ev.future { background: #4f46e5; }
+    .cal-more { font-size: 11px; color: var(--cal-muted); }
+
+    /* Panoul „Urmează în curând" */
+    .cal-upcoming { padding: 16px; }
+    .cal-upcoming h3 { margin: 0 0 12px; font-size: 16px; }
+    #upcoming-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .cal-up-item {
+      padding: 10px 12px; border: 1px solid var(--cal-border); border-radius: 8px;
+      cursor: pointer; border-left-width: 4px;
+    }
+    .cal-up-item:hover { background: var(--cal-today); }
+    .cal-up-item.done   { border-left-color: #16a34a; }
+    .cal-up-item.soon   { border-left-color: #f59e0b; }
+    .cal-up-item.late   { border-left-color: #dc2626; }
+    .cal-up-item.future { border-left-color: #4f46e5; }
+    .cal-up-title { font-weight: 600; font-size: 14px; }
+    .cal-up-meta { font-size: 12px; color: var(--cal-muted); margin-top: 2px; }
+
+    /* Modalul zilei (se afișează din JS cu display:flex, ca restul modalelor) */
+    .cal-modal-box {
+      background: var(--cal-surface); color: var(--cal-text); width: 92%; max-width: 480px;
+      max-height: 80vh; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    }
+    .cal-modal-head {
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff;
+    }
+    .cal-modal-head h3 { margin: 0; text-transform: capitalize; }
+    .cal-modal-head button { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+    #day-modal-list { list-style: none; margin: 0; padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+      <nav class="nav-menu" id="nav-menu"></nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="top-nav-links"></div>
+        <div class="user-profile">
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body cal-page" style="display:block; padding:28px 32px;">
+
+        <!-- Titlu lună + butoane de navigare -->
+        <div class="cal-toolbar">
+          <h2 id="cal-title">Calendar</h2>
+          <div class="cal-nav">
+            <button id="cal-prev" title="Luna anterioară">‹</button>
+            <button id="cal-today">Azi</button>
+            <button id="cal-next" title="Luna următoare">›</button>
+          </div>
+        </div>
+
+        <!-- Legenda culorilor -->
+        <div class="cal-legend">
+          <span><i class="cal-dot done"></i> Rezolvat</span>
+          <span><i class="cal-dot soon"></i> Urmează curând</span>
+          <span><i class="cal-dot late"></i> Expirat</span>
+          <span><i class="cal-dot future"></i> Mai departe</span>
+        </div>
+
+        <div class="cal-layout">
+
+          <!-- Grila lunară -->
+          <div class="cal-card">
+            <div class="cal-weekdays">
+              <div>Lun</div><div>Mar</div><div>Mie</div><div>Joi</div><div>Vin</div><div>Sâm</div><div>Dum</div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+
+          <!-- Panou lateral: următoarele deadline-uri -->
+          <aside class="cal-card cal-upcoming">
+            <h3>⏰ Urmează în curând</h3>
+            <ul id="upcoming-list"></ul>
+            <div class="empty-state" id="upcoming-empty" hidden>
+              <div class="empty-icon">🎉</div>
+              <p>Nimic de făcut în curând.</p>
+            </div>
+          </aside>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL: evenimentele unei zile -->
+  <div id="day-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+    <div class="cal-modal-box">
+      <div class="cal-modal-head">
+        <h3 id="day-modal-title">Ziua</h3>
+        <button id="day-modal-close">&times;</button>
+      </div>
+      <ul id="day-modal-list"></ul>
+    </div>
+  </div>
+
+  <script src="/js/toast.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/calendar.js"></script>
+</body>
+</html>
