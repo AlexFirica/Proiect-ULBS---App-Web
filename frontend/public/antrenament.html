@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Antrenament</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
+  <script src="/js/theme-toggle.js"></script>
+  <script src="/js/i18n.js"></script>
+  <style>
+    .quiz-card {
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 800px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    #question-text {
+      color: var(--text-color, #1e293b);
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .option-item {
+      background: var(--bg-body, #f8fafc);
+      border: 2px solid var(--border-color, #e2e8f0);
+      border-radius: 8px;
+      padding: 16px 20px;
+      color: var(--text-color, #475569);
+      font-size: 1.1rem;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .option-item:hover:not(:disabled) {
+      border-color: #4f46e5;
+      background: #eef2ff;
+    }
+    .option-item.selected {
+      background: #4f46e5 !important;
+      border-color: #4f46e5 !important;
+      color: #ffffff !important;
+    }
+    .option-item.correct {
+      background: #10b981 !important;
+      border-color: #10b981 !important;
+      color: #ffffff !important;
+    }
+    .option-item.wrong {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+    }
+    .option-item:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid var(--border-color, #e2e8f0);
+      padding-top: 20px;
+    }
+    #quiz-feedback {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255, 0.05) 25%, rgba(255,255,255, 0.15) 50%, rgba(255,255,255, 0.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton-text { height: 24px; width: 80%; margin-bottom: 20px; }
+    .skeleton-btn { height: 52px; width: 100%; margin-bottom: 12px; }
+
+    /* Dark mode */
+    html[data-theme="dark"] .quiz-card, body[data-theme="dark"] .quiz-card, .dark-theme .quiz-card, .dark-mode .quiz-card { background: #1e293b; border-color: #334155; }
+    html[data-theme="dark"] #question-text, body[data-theme="dark"] #question-text, .dark-theme #question-text, .dark-mode #question-text { color: #f1f5f9; }
+    html[data-theme="dark"] .option-item, body[data-theme="dark"] .option-item, .dark-theme .option-item, .dark-mode .option-item { background: #0f172a; border-color: #334155; color: #cbd5e1; }
+    html[data-theme="dark"] .action-buttons, body[data-theme="dark"] .action-buttons, .dark-theme .action-buttons, .dark-mode .action-buttons { border-color: #334155; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+      <div class="plan-card">
+        <span class="plan-badge" id="plan-badge-text" data-i18n="your_plan">Planul tău</span>
+        <h4 id="plan-title-text" data-i18n="student_account">Cont Elev</h4>
+        <p id="plan-desc-text" data-i18n="student_access">Ai acces la toate funcționalitățile.</p>
+      </div>
+      <nav class="nav-menu" id="nav-menu"></nav>
+      <div class="upgrade-card" id="upgrade-card-section">
+        <div class="crown-icon">👑</div>
+        <h4>Codero Premium</h4>
+        <p data-i18n="premium_desc">Deblochează cursuri interactive și materiale exclusive.</p>
+        <button class="btn-upgrade" data-i18n="find_more">Află mai multe &rarr;</button>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="top-nav-links"></div>
+        <div class="user-profile">
+          <button class="bell-btn"></button>
+          <div class="user-avatar" id="user-avatar-btn">👤</div>
+          <div class="user-info">
+            <span class="user-name" id="display-name">...</span>
+            <span class="user-role" id="display-role">...</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <section class="primary-column" style="width: 100%; max-width: 1200px;">
+          <div class="welcome-banner">
+            <h2>🧠 <span data-i18n="training_title">Antrenament C++</span></h2>
+            <p data-i18n="training_desc">Răspunde la întrebări de sintaxă și câștigă experiență (XP).</p>
+          </div>
+
+          <div class="quiz-card">
+            <div id="quiz-skeleton">
+              <div class="skeleton skeleton-text"></div>
+              <div class="skeleton skeleton-btn"></div>
+              <div class="skeleton skeleton-btn"></div>
+              <div class="skeleton skeleton-btn"></div>
+              <div class="skeleton skeleton-btn"></div>
+            </div>
+
+            <div id="quiz-content" style="display: none;">
+              <div id="question-text"></div>
+              <div id="options-container" class="options-grid"></div>
+              <div class="action-buttons">
+                <span id="quiz-feedback"></span>
+                <div>
+                  <button id="btn-submit" class="btn-primary" onclick="submitAnswer()" disabled data-i18n="training_submit">Trimite Răspunsul</button>
+                  <button id="btn-next" class="btn-primary" onclick="loadQuestion()" style="display: none;" data-i18n="training_next">Următoarea întrebare ➡️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
+  <script src="/js/toast.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/avatar-icon.js"></script>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
+
+    // Detectare limbă identică cu sidebar-ul
+    function getActiveLang() {
+        const htmlLang = document.documentElement.lang;
+        if (htmlLang && htmlLang.startsWith('en')) return 'en';
+        if (localStorage.getItem('language') === 'en' || localStorage.getItem('lang') === 'en') return 'en';
+        return 'ro';
+    }
+
+    async function loadUserProfile() {
+    try {
+        const res = await fetch('/api/gamification/me', { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        
+        let userRole = localStorage.getItem('role');
+        let userName = localStorage.getItem('name');
+        
+        if (res.ok) {
+            const data = await res.json();
+            if (data.name) {
+                userName = data.name;
+                localStorage.setItem('name', data.name);
+            }
+            // Salvăm în localStorage DOAR dacă serverul a trimis un rol valid
+            if (data.role && data.role !== 'undefined') {
+                userRole = data.role;
+                localStorage.setItem('role', data.role);
+            }
+        }
+        
+        const finalName = userName || 'Utilizator';
+        const nameEl = document.getElementById('display-name');
+        if (nameEl) nameEl.innerText = finalName;
+        
+        // Normalizăm rolul (profesor/teacher)
+        const rawRole = String(userRole || 'cursant').toLowerCase().trim();
+        const isTeacher = (rawRole === 'teacher' || rawRole === 'profesor');
+        
+        const roleEl = document.getElementById('display-role');
+        if (roleEl) {
+            roleEl.innerText = isTeacher ? 'Profesor' : 'Elev';
+            roleEl.setAttribute('data-i18n', isTeacher ? 'role_teacher' : 'role_student');
+        }
+
+        if (isTeacher) {
+            const planTitle = document.getElementById('plan-title-text');
+            const planDesc = document.getElementById('plan-desc-text');
+            if (planTitle) { planTitle.innerText = "Classroom Gratuit"; planTitle.setAttribute('data-i18n', 'free_classroom'); }
+            if (planDesc) { planDesc.innerText = "Ai acces la funcționalități pentru profesori."; planDesc.setAttribute('data-i18n', 'teacher_access'); }
+        }
+
+        renderSidebar(rawRole, 'antrenament');
+        if (typeof translatePage === 'function') translatePage();
+        
+    } catch (e) { 
+        console.error("Eroare încărcare profil:", e); 
+    }
+}
+
+    function renderQuizContent() {
+      if (!currentQuizData) return;
+      const activeLang = getActiveLang(); // Folosim funcția robustă
+      
+      document.getElementById('question-text').innerText = currentQuizData.text[activeLang] || currentQuizData.text['ro'];
+      const optionsContainer = document.getElementById('options-container');
+      optionsContainer.innerHTML = ''; 
+      
+      const translatedOptions = currentQuizData.options[activeLang] || currentQuizData.options['ro'];
+      translatedOptions.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-item';
+        if (index === selectedOptionIndex) {
+            btn.classList.add('selected');
+            selectedOptionBtn = btn;
+        }
+        btn.innerText = opt;
+        btn.onclick = () => selectOption(index, btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    async function loadQuestion() {
+      document.getElementById('quiz-skeleton').style.display = 'block';
+      document.getElementById('quiz-content').style.display = 'none';
+      document.getElementById('quiz-feedback').innerText = '';
+      
+      const btnSubmit = document.getElementById('btn-submit');
+      btnSubmit.style.display = 'inline-block';
+      btnSubmit.disabled = true;
+      document.getElementById('btn-next').style.display = 'none';
+      
+      selectedOptionIndex = null;
+      selectedOptionBtn = null;
+
+      try {
+        await new Promise(resolve => setTimeout(resolve, 400));
+        const response = await fetch('/api/gamification/quiz/random', { headers: { 'Authorization': `Bearer ${token}` } });
+        
+        if (!response.ok) throw new Error("Nu am putut încărca întrebarea.");
+        currentQuizData = await response.json();
+        currentQuestionId = currentQuizData.id;
+        
+        renderQuizContent(); 
+        
+        document.getElementById('quiz-skeleton').style.display = 'none';
+        document.getElementById('quiz-content').style.display = 'block';
+        if (typeof translatePage === 'function') translatePage();
+        
+      } catch (err) {
+        document.getElementById('quiz-skeleton').innerHTML = `<p style="color:#ef4444;text-align:center;">Eroare conexiune server.</p>`;
+      }
+    }
+
+    // Ascultător pentru a schimba limba întrebărilor LIVE fără să le duplice
+    const observer = new MutationObserver(() => {
+        if(currentQuizData && document.getElementById('quiz-content').style.display === 'block') {
+            renderQuizContent();
+        }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+
+    function selectOption(index, btnElement) {
+      selectedOptionIndex = index;
+      selectedOptionBtn = btnElement;
+      document.querySelectorAll('.option-item').forEach(b => b.classList.remove('selected'));
+      btnElement.classList.add('selected');
+      document.getElementById('btn-submit').disabled = false;
+    }
+
+    async function submitAnswer() {
+  if (selectedOptionIndex === null) return;
+  document.querySelectorAll('.option-item').forEach(b => b.disabled = true);
+  document.getElementById('btn-submit').style.display = 'none';
+
+  try {
+    const response = await fetch('/api/gamification/quiz/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ questionId: currentQuestionId, answerIndex: selectedOptionIndex })
+    });
+    
+    if (!response.ok) throw new Error("Eroare la verificare.");
+    const result = await response.json();
+    const feedbackEl = document.getElementById('quiz-feedback');
+    selectedOptionBtn.classList.remove('selected');
+    
+    // Preluăm limba activă (EN / RO)
+    const activeLang = getActiveLang();
+    
+    // Extragem textul tradus transmis de backend
+    let feedbackMsg = "";
+    if (typeof result.message === 'object' && result.message !== null) {
+      feedbackMsg = result.message[activeLang] || result.message['ro'];
+    } else {
+      feedbackMsg = result.message || "";
+    }
+
+    if (result.correct) {
+      selectedOptionBtn.classList.add('correct');
+      feedbackEl.style.color = '#10b981'; 
+      feedbackEl.innerText = feedbackMsg;
+
+      // Toast tradus la răspuns corect
+      if (typeof window.showToast === 'function') {
+        const toastMsg = activeLang === 'en'
+          ? `🎉 Correct! Total: ${result.newXp || 0} XP`
+          : `🎉 Corect! Total: ${result.newXp || 0} XP`;
+        showToast(feedbackMsg || toastMsg, "success");
+      }
+      
+      if (typeof confetti === 'function') confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+    } else {
+      selectedOptionBtn.classList.add('wrong');
+      feedbackEl.style.color = '#ef4444'; 
+      feedbackEl.innerText = feedbackMsg;
+
+      // Toast tradus la răspuns greșit
+      if (typeof window.showToast === 'function') {
+        showToast(feedbackMsg, "error");
+      }
+    }
+    
+    document.getElementById('btn-next').style.display = 'inline-block';
+  } catch (err) {
+    const activeLang = getActiveLang();
+    const feedbackEl = document.getElementById('quiz-feedback');
+    feedbackEl.style.color = '#ef4444';
+    
+    const errText = activeLang === 'en' ? "❌ Verification server error" : "❌ Eroare server la verificare";
+    feedbackEl.innerText = errText;
+    
+    if (typeof window.showToast === 'function') {
+      showToast(errText, "error");
+    }
+    
+    document.getElementById('btn-next').style.display = 'inline-block';
+  }
+}
+
+    // Inițializare
+    document.addEventListener("DOMContentLoaded", () => {
+        loadUserProfile();
+        loadQuestion();
+    });
+  </script>
+</body>
+</html>

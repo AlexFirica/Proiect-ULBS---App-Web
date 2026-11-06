@@ -24,4 +24,7 @@ router.post('/daily', protect, gamificationController.daily);
 // 5. Simulare bătălie 1v1 (Demo)
 router.post('/battle-demo', protect, gamificationController.battleDemo);
 
+router.get('/quiz/random', protect, gamificationController.getRandomQuiz);
+router.post('/quiz/submit', protect, gamificationController.submitQuizAnswer);
+
 module.exports = router;

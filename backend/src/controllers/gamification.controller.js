@@ -26,6 +26,7 @@ function serialize(u) {
   const today = getTodayStr();
   return {
     name: u.name,
+    role: u.role || 'cursant', // 👈 AICI ERA BUG-UL! Trimitem rolul real din MongoDB
     coins: u.coins ?? START_COINS,
     xp: u.xp || 0,
     level: levelOf(u.xp),
@@ -188,4 +189,102 @@ exports.battleDemo = async (req, res) => {
     );
     res.json({ won, a, b, ...serialize(upd) });
   } catch (e) { serverError(res, e); }
+};
+
+
+// === MODUL ANTRENAMENT (QUIZ) ===
+const QUIZ_QUESTIONS = [
+    { 
+        id: 1, 
+        text: { ro: "Ce va afișa: cout << 10 % 3;", en: "What will this output: cout << 10 % 3;" }, 
+        options: { ro: ["3", "1", "0", "Eroare"], en: ["3", "1", "0", "Error"] }, 
+        correctIndex: 1, xpReward: 15 
+    },
+    { 
+        id: 2, 
+        text: { ro: "Care tip de date stochează numere cu virgulă?", en: "Which data type stores floating-point numbers?" }, 
+        options: { ro: ["int", "char", "float", "bool"], en: ["int", "char", "float", "bool"] }, 
+        correctIndex: 2, xpReward: 10 
+    },
+    { 
+        id: 3, 
+        text: { ro: "Cum declari un vector de 10 elemente întregi?", en: "How do you declare an array of 10 integers?" }, 
+        options: { ro: ["int v[10];", "vector v(10);", "int v = 10;", "array[10] v;"], en: ["int v[10];", "vector v(10);", "int v = 10;", "array[10] v;"] }, 
+        correctIndex: 0, xpReward: 20 
+    },
+    { 
+        id: 4, 
+        text: { ro: "Ce înseamnă i++ ?", en: "What does i++ mean?" }, 
+        options: { ro: ["i = i - 1", "i = i + 2", "i = i + 1", "Eroare sintaxă"], en: ["i = i - 1", "i = i + 2", "i = i + 1", "Syntax error"] }, 
+        correctIndex: 2, xpReward: 10 
+    }
+];
+
+// Endpoint 1: Cere o întrebare aleatorie
+exports.getRandomQuiz = async (req, res) => {
+    try {
+        const randomIndex = Math.floor(Math.random() * QUIZ_QUESTIONS.length);
+        const q = QUIZ_QUESTIONS[randomIndex];
+        
+        // Trimitem ambele limbi către frontend
+        res.json({
+            id: q.id,
+            text: q.text,
+            options: q.options,
+            xpReward: q.xpReward
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Eroare la generarea întrebării." });
+    }
+};
+
+// Endpoint 2: Verifică răspunsul și acordă XP
+exports.submitQuizAnswer = async (req, res) => {
+    try {
+        const userId = uid(req);
+        if (!userId) return fail(res, 401, 'Utilizator neautentificat.');
+
+        const { questionId, answerIndex } = req.body;
+        
+        // Extragem user-ul real din DB pentru a-l salva corect
+        const dbUser = await User.findById(userId);
+        if (!dbUser) return fail(res, 404, 'Utilizator inexistent.');
+
+        const question = QUIZ_QUESTIONS.find(q => q.id === questionId);
+        if (!question) return res.status(404).json({ message: "Întrebare inexistentă." });
+
+        if (question.correctIndex === answerIndex) {
+            // Răspuns corect
+            dbUser.xp = (dbUser.xp || 0) + question.xpReward;
+            
+            // Logică de level up
+            const currentLevel = levelOf(dbUser.xp - question.xpReward); // level înainte
+            const newLevel = levelOf(dbUser.xp); // level după
+            
+            if (newLevel > currentLevel) {
+                dbUser.level = newLevel;
+            }
+
+            await dbUser.save();
+            return res.json({ 
+                correct: true, 
+                message: { 
+                    ro: `Corect! Ai primit ${question.xpReward} XP.`, 
+                    en: `Correct! You earned ${question.xpReward} XP.` 
+                }, 
+                newXp: dbUser.xp, 
+                newLevel: dbUser.level 
+            });
+        } else {
+            return res.json({ 
+                correct: false, 
+                message: { 
+                    ro: "Răspuns greșit. Mai încearcă!", 
+                    en: "Wrong answer. Try again!" 
+                } 
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Eroare la verificarea răspunsului." });
+    }
 };
