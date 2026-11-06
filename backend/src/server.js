@@ -43,6 +43,7 @@ app.get('/classrooms-student.html', (req, res) => res.sendFile(path.join(publicP
 app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'settings.html')));
 app.get('/cursuri.html', (req, res) => res.sendFile(path.join(publicPath, 'cursuri.html')));
 app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
+app.get('/calendar.html', (req, res) => res.sendFile(path.join(publicPath, 'calendar.html')));
 
 // Rute API
 app.use('/api/auth', authRoutes);

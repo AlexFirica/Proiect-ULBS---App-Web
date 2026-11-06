@@ -123,18 +123,20 @@
             <ul class="quick-actions">
               <li><button class="action-btn" id="creeaza_classroom3">➕ Creează classroom</button></li>
               <li><button class="action-btn" id="quick-add-material-btn">📤 Încarcă material</button></li>
-              <li><button class="action-btn" onclick="window.location.href='/coming-soon.html?f=Calendar'">📅 Vezi calendar</button></li>
+              <li><button class="action-btn" onclick="window.location.href='/calendar.html'">📅 Vezi calendar</button></li>
             </ul>
           </div>
 
           <div class="widget-box">
             <div class="widget-header">
               <h4>Calendar</h4>
-              <a href="/coming-soon.html?f=Calendar" class="link-small">Vezi tot</a>
+              <a href="/calendar.html" class="link-small">Vezi tot</a>
             </div>
-            <div class="empty-widget-state">
-              <p>Nu ai nicio activitate programată.</p>
-            </div>
+              <div id="calendar-widget-body">
+                <div class="empty-widget-state">
+                  <p>Se încarcă...</p>
+                </div>
+              </div>
           </div>
 
           <div class="widget-box">
@@ -308,6 +310,7 @@
   <script src="/js/toast.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-teacher.js"></script>
+  <script src="/js/calendar-widget.js"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
   <script>
     let monacoEditorInstance = null;
