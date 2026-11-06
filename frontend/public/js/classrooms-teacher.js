@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmInviteCode = document.getElementById('cm-invite-code');
   const cmHomeworkList = document.getElementById('cm-homework-list');
   const cmMaterialsList = document.getElementById('cm-materials-list');
+  const cmTestsList = document.getElementById('cm-tests-list'); // Lista teste
   const cmXpLabel = document.getElementById('cm-xp-label');
   const cmXpBar = document.getElementById('cm-xp-bar');
   const cmStudentsTbody = document.getElementById('cm-students-tbody');
@@ -144,13 +145,17 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Eroare la conectarea cu serverul.', 'error');
     }
   });
+
+  // Gestionare tab-uri (inclusiv 'teste')
   document.querySelectorAll('.cm-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.cm-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById('cm-pane-teme').hidden = tab.dataset.tab !== 'teme';
-      document.getElementById('cm-pane-cursuri').hidden = tab.dataset.tab !== 'cursuri';
-      document.getElementById('cm-pane-elevi').hidden = tab.dataset.tab !== 'elevi';
+      const targetTab = tab.dataset.tab;
+      document.getElementById('cm-pane-teme').hidden = targetTab !== 'teme';
+      document.getElementById('cm-pane-cursuri').hidden = targetTab !== 'cursuri';
+      document.getElementById('cm-pane-teste').hidden = targetTab !== 'teste';
+      document.getElementById('cm-pane-elevi').hidden = targetTab !== 'elevi';
     });
   });
 
@@ -177,6 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
     cmHomeworkList.innerHTML = homeworks.length
       ? homeworks.map(hw => `<li style="padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-between; align-items:center;"><span>📝 ${escapeHTML(hw.title)} (+${hw.xpReward || 10} XP)</span><span style="display:flex; align-items:center; gap:8px;">${deadlineBadge(hw.dueDate)}<button class="delete-homework-btn" data-hwid="${hw._id}" title="Șterge tema" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px;">🗑️</button></span></li>`).join('')
       : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
+
+    // (Opțional) Aici poți adăuga logica pentru popularea listei de teste dacă ai un endpoint dedicat
+    if (cmTestsList) {
+      cmTestsList.innerHTML = '<li style="color:#94a3b8;">Niciun test momentan.</li>';
+    }
 
     const matRes = await fetch(`/api/classrooms/${id}/materials`, { headers: { 'Authorization': `Bearer ${token}` } });
     const materials = await matRes.json();

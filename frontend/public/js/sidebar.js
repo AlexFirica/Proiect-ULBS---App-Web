@@ -51,7 +51,7 @@ function renderSidebar(role, activeKey) {
   const links = [
     { key: 'dashboard', href: dashboardUrl, icon: '🏠', label: t.nav_dashboard, i18n: 'nav_dashboard' },
     { key: 'classrooms', href: classroomsUrl, icon: '🏫', label: t.nav_classrooms, i18n: 'nav_classrooms' },
-    { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', icon: '📚', label: t.nav_courses, i18n: 'nav_courses' },
+    { key: 'cursuri', href: '/cursuri.html', icon: '📚', label: t.nav_courses, i18n: 'nav_courses' },
     { key: 'antrenament', href: '/antrenament.html', icon: '🧠', label: t.nav_training, i18n: 'nav_training' },
     { key: 'mesaje', href: '/coming-soon.html?f=Mesaje', icon: '💬', label: t.nav_messages, i18n: 'nav_messages' },
     { key: 'calendar', href: '/coming-soon.html?f=Calendar', icon: '📅', label: t.nav_calendar, i18n: 'nav_calendar' },
@@ -76,6 +76,14 @@ function renderSidebar(role, activeKey) {
   if (topNav) {
     topNav.innerHTML = links.filter(l => ['dashboard', 'classrooms', 'cursuri', 'antrenament'].includes(l.key))
       .map(link => `<a href="${link.href}" class="top-link${link.key === activeKey ? ' active' : ''}" data-i18n="${link.i18n}">${link.label}</a>`).join('');
+    const topLinks = [
+      { key: 'dashboard', href: dashboardUrl, label: 'Dashboard' },
+      { key: 'classrooms', href: classroomsUrl, label: 'Classrooms' },
+      { key: 'cursuri', href: '/cursuri.html', label: 'Cursuri' }
+    ];
+    topNav.innerHTML = topLinks.map(link => `
+      <a href="${link.href}" class="top-link${link.key === activeKey ? ' active' : ''}">${link.label}</a>
+    `).join('');
   }
 
   const userProfile = document.querySelector('.user-profile');

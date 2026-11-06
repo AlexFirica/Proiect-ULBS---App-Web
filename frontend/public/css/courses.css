@@ -1,0 +1,31 @@
+.lx-back { background:none; border:none; color:#4f46e5; cursor:pointer; font-size:13px; font-weight:600; padding:0; margin-bottom:12px; }
+.lx-meta { color:#64748b; font-size:12px; }
+.lx-chapter { margin-bottom:16px; }
+.lx-chapter h4 { margin-bottom:10px; }
+.lx-lesson-btn { display:flex; justify-content:space-between; width:100%; text-align:left; background:#f8fafc; border:1px solid #e2e8f0; padding:10px 12px; border-radius:6px; font-size:13px; cursor:pointer; color:#334155; margin-bottom:6px; }
+.lx-lesson-btn:hover, .lx-lesson-btn.current { background:#eef2ff; border-color:#6366f1; color:#4338ca; }
+
+.lx-article { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:28px; }
+.lx-article h1 { font-size:24px; margin-bottom:6px; }
+.lx-article p { line-height:1.7; margin:12px 0; color:#334155; }
+.lx-article code.inline { background:#eef2ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-family:Consolas,monospace; font-size:0.9em; }
+.lx-block { margin:22px 0; }
+
+.lx-code { background:#0f172a; color:#e2e8f0; padding:16px; border-radius:8px; overflow:auto; font-family:Consolas,monospace; font-size:13px; line-height:1.6; white-space:pre; }
+.lx-notes { margin:10px 0 0 18px; font-size:13px; color:#475569; line-height:1.6; }
+
+.lx-callout { border-left:4px solid #f59e0b; background:#fffbeb; padding:12px 16px; border-radius:0 8px 8px 0; line-height:1.6; color:#78350f; }
+.lx-callout.tip { border-color:#10b981; background:#ecfdf5; color:#065f46; }
+
+.lx-quiz h3, .lx-task h3 { font-size:16px; margin-bottom:10px; }
+.lx-option { display:block; width:100%; text-align:left; background:#f8fafc; border:1px solid #cbd5e1; padding:10px 14px; border-radius:8px; margin-bottom:8px; cursor:pointer; font-size:14px; }
+.lx-option:hover { background:#eef2ff; }
+.lx-option.right { background:#d1fae5; border-color:#10b981; }
+.lx-option.wrong { background:#fee2e2; border-color:#ef4444; }
+
+.lx-task { border:1px solid #c7d2fe; background:#f5f7ff; border-radius:12px; padding:18px; }
+.lx-editor { width:100%; background:#0f172a; color:#e2e8f0; border:1px solid #334155; border-radius:8px; padding:12px; font-family:Consolas,monospace; font-size:13px; line-height:1.6; min-height:180px; margin:10px 0; resize:vertical; }
+.lx-row { display:flex; gap:10px; flex-wrap:wrap; }
+.lx-ok { color:#059669; font-weight:600; margin-top:10px; }
+.lx-bad { color:#dc2626; font-weight:600; margin-top:10px; }
+.lx-hint { background:#fff; border:1px dashed #94a3b8; padding:8px 12px; border-radius:6px; margin-top:8px; font-size:13px; }

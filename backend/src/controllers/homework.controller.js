@@ -4,6 +4,18 @@ const axios = require('axios');
 const Submission = require('../models/submission.model');
 const User = require('../models/user.model');
 
+const { runTestCases, gradeFromTests } = require('../Utils/pistonJudge.util');
+
+const isTeacherUser = (user) => user && (user.role === 'teacher' || user.role === 'profesor');
+
+// Elevii nu trebuie să vadă niciodată testele (conțin răspunsurile corecte)
+const stripHiddenTests = (homework) => {
+  delete homework.testCases;
+  delete homework.testInput;
+  delete homework.expectedOutput;
+  return homework;
+};
+
 const {
   encryptAES,
   decryptAES,
@@ -23,7 +35,8 @@ const createHomework = async (req, res) => {
       isCodingTask,
       testInput,
       expectedOutput,
-      xpReward
+      xpReward,
+      testCases
     } = req.body;
 
     if (!title || !dueDate) {
@@ -47,7 +60,10 @@ const createHomework = async (req, res) => {
       isCodingTask: isCodingTask !== undefined ? isCodingTask : true,
       testInput: testInput || "",
       expectedOutput: expectedOutput || "",
-      xpReward: xpReward || 10
+      xpReward: xpReward || 10,
+      testCases: Array.isArray(testCases)
+        ? testCases.map((t) => ({ input: String(t.input ?? ''), output: String(t.output ?? '') }))
+        : []
     });
 
     const savedHomework = await newHomework.save();
@@ -69,7 +85,7 @@ const getAllHomeworks = async (req, res) => {
       const isIntegrityOk = verifySignatureECC(payloadToVerify, homework.signature);
       homework.description = decryptAES(homework.description);
       homework.isSecureAndAuthentic = isIntegrityOk;
-      return homework;
+      return isTeacherUser(req.user) ? homework : stripHiddenTests(homework);
     });
 
     res.status(200).json(processedHomeworks);
@@ -97,7 +113,7 @@ const getHomeworkById = async (req, res) => {
       console.warn(`[WARNING] Date compromise la tema cu ID-ul: ${homework._id}`);
     }
 
-    res.status(200).json(homework);
+    res.status(200).json(isTeacherUser(req.user) ? homework : stripHiddenTests(homework));
   } catch (error) {
     res.status(500).json({ message: 'Eroare la căutare.', error: error.message });
   }
@@ -173,6 +189,15 @@ const submitCodeTask = async (req, res) => {
 
     const studentId = req.user.id || req.user.userId;
 
+    if (!sourceCode || !sourceCode.trim()) {
+      return res.status(400).json({ message: 'Codul sursă lipsește.' });
+    }
+
+    // ── Temă cu teste multiple (ex. din catalogul de exerciții) ──
+    if (Array.isArray(homework.testCases) && homework.testCases.length > 0) {
+      return await submitWithTestCases(req, res, homework, studentId, sourceCode);
+    }
+
     const pistonRes = await axios.post(`${process.env.PISTON_API_URL}/execute`, {
       language: 'c++',
       version: '10.2.0',
@@ -235,6 +260,89 @@ const submitCodeTask = async (req, res) => {
     res.status(500).json({ message: 'Eroare internă.', error: error.message });
   }
 };
+
+// Evaluare pe mai multe teste ascunse. Elevul vede doar verdictul fiecărui test,
+// plus input/output-ul așteptat pentru primul test (cel din exemplul enunțului).
+async function submitWithTestCases(req, res, homework, studentId, sourceCode) {
+  const judged = await runTestCases(sourceCode, homework.testCases);
+
+  if (judged.compileError) {
+    await Submission.findOneAndUpdate(
+      { homeworkId: homework._id, studentId },
+      { status: 'COMPILATION_ERROR', output: '', sourceCode, passedTests: 0, totalTests: judged.total, grade: 1 },
+      { upsert: true }
+    );
+    return res.status(200).json({
+      success: false,
+      message: 'Codul nu compilează. Verifică erorile de mai jos.',
+      compileError: judged.compileError
+    });
+  }
+
+  const { passed, total, results } = judged;
+  const isCorrect = passed === total;
+  const grade = gradeFromTests(passed, total);
+
+  const existing = await Submission.findOne({ homeworkId: homework._id, studentId });
+  const alreadyPassed = existing?.status === 'passed';
+
+  let xpEarned = 0;
+  let coinsEarned = 0;
+  if (isCorrect && !alreadyPassed) {
+    xpEarned = homework.xpReward || 10;
+    coinsEarned = xpEarned * 5;
+    await User.findByIdAndUpdate(studentId, { $inc: { xp: xpEarned, coins: coinsEarned } });
+  }
+
+  // Nu degradăm o soluție deja corectă dacă elevul retrimite una greșită
+  const keepPassed = alreadyPassed && !isCorrect;
+  if (!keepPassed) {
+    await Submission.findOneAndUpdate(
+      { homeworkId: homework._id, studentId },
+      {
+        status: isCorrect ? 'passed' : 'failed',
+        output: results[0]?.actual || '',
+        sourceCode,
+        passedTests: passed,
+        totalTests: total,
+        grade,
+        xpAwarded: xpEarned || existing?.xpAwarded || 0
+      },
+      { upsert: true }
+    );
+  }
+
+  const labels = {
+    OK: '✅ corect',
+    WRONG_ANSWER: '❌ răspuns greșit',
+    TIME_LIMIT: '⏱️ timp depășit',
+    RUNTIME_ERROR: '💥 eroare la rulare'
+  };
+  const perTest = results.map((r) => `Test ${r.index + 1}: ${labels[r.verdict]}`).join('\n');
+
+  let message;
+  if (isCorrect) {
+    message = alreadyPassed
+      ? `Corect! Toate cele ${total} teste au trecut. (Deja notată anterior — fără XP/monede suplimentare)`
+      : `Răspuns corect! Toate cele ${total} teste au trecut. Ai primit +${xpEarned} XP și +${coinsEarned} monede 🪙`;
+  } else {
+    message = `Răspuns incorect. Ai trecut ${passed} din ${total} teste (notă ${grade}).\n\n${perTest}`;
+  }
+
+  const first = results[0];
+  return res.status(200).json({
+    success: isCorrect,
+    message,
+    // Doar exemplul (testul 1) este vizibil elevului
+    output: first && !first.ok ? first.actual : undefined,
+    expectedOutput: first && !first.ok ? homework.testCases[0].output : undefined,
+    passedTests: passed,
+    totalTests: total,
+    grade,
+    xpEarned,
+    coinsEarned
+  });
+}
 
 // 7. Rulare de test (execuție reală, cu input personalizat)
 const testRunCode = async (req, res) => {
