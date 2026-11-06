@@ -51,10 +51,10 @@ function renderSidebar(role, activeKey) {
     const links = [
         { key: 'dashboard', href: dashboardUrl, icon: '🏠', label: t.nav_dashboard, i18n: 'nav_dashboard' },
         { key: 'classrooms', href: classroomsUrl, icon: '🏫', label: t.nav_classrooms, i18n: 'nav_classrooms' },
-        { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', icon: '📚', label: t.nav_courses, i18n: 'nav_courses' },
+        { key: 'cursuri', href: '/cursuri.html', icon: '📚', label: t.nav_courses, i18n: 'nav_courses' },
         { key: 'antrenament', href: '/antrenament.html', icon: '🧠', label: t.nav_training, i18n: 'nav_training' },
         { key: 'mesaje', href: '/coming-soon.html?f=Mesaje', icon: '💬', label: t.nav_messages, i18n: 'nav_messages' },
-        { key: 'calendar', href: '/coming-soon.html?f=Calendar', icon: '📅', label: t.nav_calendar, i18n: 'nav_calendar' },
+        { key: 'calendar', href: '/calendar.html', icon: '📅', label: t.nav_calendar, i18n: 'nav_calendar' },
         { key: 'fisiere', href: '/coming-soon.html?f=Fișierele mele', icon: '📁', label: t.nav_files, i18n: 'nav_files' },
         { key: 'setari', href: '/settings.html', icon: '⚙️', label: t.nav_settings, i18n: 'nav_settings' }
     ];
