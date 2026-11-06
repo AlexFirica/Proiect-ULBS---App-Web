@@ -10,7 +10,7 @@ function renderSidebar(role, activeKey) {
     { key: 'classrooms', href: classroomsUrl, icon: '🏫', label: 'Classrooms' },
     { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', icon: '📚', label: 'Cursuri' },
     { key: 'mesaje', href: '/coming-soon.html?f=Mesaje', icon: '💬', label: 'Mesaje' },
-    { key: 'calendar', href: '/coming-soon.html?f=Calendar', icon: '📅', label: 'Calendar' },
+    { key: 'calendar', href: '/calendar.html', icon: '📅', label: 'Calendar' },
     { key: 'fisiere', href: '/coming-soon.html?f=Fișierele mele', icon: '📁', label: 'Fișierele mele' },
     { key: 'setari', href: '/settings.html', icon: '⚙️', label: 'Setări' }
   ];
