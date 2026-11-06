@@ -6,7 +6,11 @@ const TestSchema = new mongoose.Schema({
   description: { type: String, required: true },
   difficulty: { type: String, enum: ['usor', 'mediu', 'avansat'], default: 'usor' },
   xp: { type: Number, default: 15 },
-  sourceMaterial: { type: String },
+  testCases: [{
+    input: { type: String, default: '' },
+    expectedOutput: { type: String, required: true }
+  }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
 });
 

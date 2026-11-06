@@ -29,3 +29,69 @@
 .lx-ok { color:#059669; font-weight:600; margin-top:10px; }
 .lx-bad { color:#dc2626; font-weight:600; margin-top:10px; }
 .lx-hint { background:#fff; border:1px dashed #94a3b8; padding:8px 12px; border-radius:6px; margin-top:8px; font-size:13px; }
+/* Corecții Dark Mode pentru componentele de Cursuri/Materiale (.lx-*) */
+html[data-theme="dark"] .lx-article,
+body.dark-mode .lx-article {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .lx-article p,
+html[data-theme="dark"] .lx-notes,
+body.dark-mode .lx-article p {
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .lx-lesson-btn,
+body.dark-mode .lx-lesson-btn {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] .lx-lesson-btn:hover,
+html[data-theme="dark"] .lx-lesson-btn.current,
+body.dark-mode .lx-lesson-btn.current {
+  background: #1e1b4b !important;
+  border-color: #6366f1 !important;
+  color: #818cf8 !important;
+}
+
+html[data-theme="dark"] .lx-task,
+body.dark-mode .lx-task {
+  background: #0f172a !important;
+  border-color: #3730a3 !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] .lx-option,
+body.dark-mode .lx-option {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .lx-option:hover,
+body.dark-mode .lx-option:hover {
+  background: #1e293b !important;
+}
+
+html[data-theme="dark"] .lx-callout,
+body.dark-mode .lx-callout {
+  background: #451a03 !important;
+  color: #fef3c7 !important;
+}
+
+html[data-theme="dark"] .lx-callout.tip,
+body.dark-mode .lx-callout.tip {
+  background: #064e3b !important;
+  color: #a7f3d0 !important;
+}
+
+html[data-theme="dark"] .lx-hint,
+body.dark-mode .lx-hint {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #cbd5e1 !important;
+}

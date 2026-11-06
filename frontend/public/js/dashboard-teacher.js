@@ -241,7 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function openClassroomModal(id, name) {
+    // 🔴 FIX: Stocăm ID-ul clasei active global și în sesiune
+    window.currentClassroomId = id;
+    localStorage.setItem('currentClassroomId', id);
     currentClassroomId = id;
+
     cmTitle.textContent = name || 'Classroom';
     classroomModal.style.display = 'flex';
     classroomModal.removeAttribute('hidden');
@@ -279,25 +283,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     await loadMaterials(id);
     await loadStudents(id);
-  }
+}
 
   async function loadMaterials(classroomId) {
+    const lang = (document.documentElement.lang && document.documentElement.lang.startsWith('en')) ? 'en' : 'ro';
+    const cmMaterialsList = document.getElementById('cm-materials-list');
+    if (!cmMaterialsList) return;
+
     try {
-      const res = await fetch(`/api/classrooms/${classroomId}/materials`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const materials = await res.json();
-      cmMaterialsList.innerHTML = Array.isArray(materials) && materials.length
-        ? materials.map(m => `
-            <li class="cm-material-item" data-url="${m.file_url}" data-title="${escapeHTML(m.title)}" style="padding:10px; background:#f8fafc; border-radius:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-              <span>📄 ${escapeHTML(m.title)}</span>
-              <span style="color:#4f46e5; font-size:13px;">Vizualizează →</span>
-            </li>`).join('')
-        : '<li style="color:#94a3b8;">Niciun material încărcat.</li>';
+        const res = await fetch(`/api/classrooms/${classroomId}/materials`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        if (!res.ok) throw new Error("Eroare incarcare materiale");
+        const materials = await res.json();
+
+        if (!materials || materials.length === 0) {
+            const emptyMsg = lang === 'en' ? 'No materials uploaded yet.' : 'Niciun material momentan.';
+            cmMaterialsList.innerHTML = `<li style="color:#94a3b8; padding:10px;">${emptyMsg}</li>`;
+            return;
+        }
+
+        const uploadedLabel = lang === 'en' ? 'Uploaded on:' : 'Încărcat pe:';
+        const viewBtnLabel = lang === 'en' ? '👁 View' : '👁 Vizualizează';
+
+        cmMaterialsList.innerHTML = materials.map(mat => {
+            const title = (typeof mat.title === 'object') ? (mat.title[lang] || mat.title.ro) : mat.title;
+            const dateStr = mat.createdAt ? new Date(mat.createdAt).toLocaleDateString() : '';
+
+            return `
+                <li style="padding:12px; background:var(--bg-card, #f8fafc); border:1px solid var(--border-color, #e2e8f0); border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="color:var(--text-color, #1e293b); font-size:14px;">📄 ${escapeHTML(title)}</strong>
+                        <div style="font-size:12px; opacity:0.75; margin-top:3px;">${uploadedLabel} ${dateStr}</div>
+                    </div>
+                    <button class="btn-primary" onclick="viewMaterial('${mat._id || mat.id}')" style="padding:6px 12px; font-size:12px;">${viewBtnLabel}</button>
+                </li>
+            `;
+        }).join('');
+
     } catch (err) {
-      console.error('Eroare la încărcarea materialelor:', err);
+        console.error(err);
+        cmMaterialsList.innerHTML = `<li style="color:#ef4444; padding:10px;">${lang === 'en' ? 'Error loading materials.' : 'Eroare la încărcarea materialelor.'}</li>`;
     }
-  }
+}
 
   async function loadStudents(classroomId) {
     try {
@@ -548,4 +577,89 @@ function deadlineBadge(dueDate) {
     return `<span style="background:#fef3c7 !important; color:#b45309 !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">Expiră ${diffDays === 0 ? 'azi' : `în ${diffDays}z`}</span>`;
   }
   return `<span style="background:#e0e7ff !important; color:#4338ca !important; font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700; white-space:nowrap;">${diffDays}z rămase</span>`;
+}
+
+// === FUNCȚIE NOUĂ DE GENERARE TEST INTELIGENT AI ===
+async function handleGenerateAiTest() {
+    const lang = (document.documentElement.lang && document.documentElement.lang.startsWith('en')) ? 'en' : 'ro';
+    
+    // 1. Încercăm să luăm clasa activă deschisă în modal
+    let classroomId = window.currentClassroomId || localStorage.getItem('currentClassroomId');
+
+    // 2. Fallback: Dacă nu e deschis niciun classroom, luăm prima clasă disponibilă din listă
+    if (!classroomId && typeof lastLoadedClassrooms !== 'undefined' && lastLoadedClassrooms.length > 0) {
+        classroomId = lastLoadedClassrooms[0].id || lastLoadedClassrooms[0]._id;
+    }
+
+    // 3. Dacă tot nu există nicio clasă (profesorul nu are nicio clasă creată)
+    if (!classroomId) {
+        const errorMsg = lang === 'en' 
+            ? "You need to create at least one classroom first!" 
+            : "Trebuie să creezi mai întâi cel puțin un classroom!";
+        if (typeof showToast === 'function') showToast(errorMsg, "error");
+        else alert(errorMsg);
+        return;
+    }
+
+    const materialSelect = document.getElementById('ai-test-material-select');
+    const difficultySelect = document.getElementById('ai-test-difficulty-select');
+
+    const materialId = (materialSelect && materialSelect.value) ? materialSelect.value : null;
+    const difficulty = (difficultySelect && difficultySelect.value) ? difficultySelect.value : 'mediu';
+    const btn = document.getElementById('btn-run-ai-generate');
+
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = lang === 'en' ? "⏳ Generating..." : "⏳ Se generează...";
+        }
+
+        const response = await fetch('/api/teacher/generate-ai-homework', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                classroomId: classroomId,
+                materialId: materialId,
+                difficulty: difficulty
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Eroare la generarea testului.");
+        }
+
+        // Ascundem modalul
+        const aiModal = document.getElementById('ai-test-modal');
+        if (aiModal) {
+            aiModal.style.display = 'none';
+            aiModal.setAttribute('hidden', '');
+        }
+
+        const successMsg = lang === 'en' ? "Test successfully generated!" : "Testul a fost generat cu succes!";
+        if (typeof showToast === 'function') showToast(successMsg, "success");
+
+        // Reîncărcăm lista/classroom-ul dacă e deschis
+        if (typeof openClassroomModal === 'function' && window.currentClassroomId) {
+            const cls = lastLoadedClassrooms.find(c => String(c.id) === String(window.currentClassroomId));
+            await openClassroomModal(window.currentClassroomId, cls?.name);
+        } else if (typeof loadClassrooms === 'function') {
+            await loadClassrooms();
+        }
+
+    } catch (err) {
+        console.error("Eroare AI Test:", err);
+        const errMsg = lang === 'en' ? "Failed to generate test: " : "Eroare la generare: ";
+        if (typeof showToast === 'function') showToast(errMsg + err.message, "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.setAttribute('data-i18n', 'btn_generate_test_action');
+            btn.innerText = lang === 'en' ? "✨ Generate test" : "✨ Generează testul";
+        }
+    }
 }

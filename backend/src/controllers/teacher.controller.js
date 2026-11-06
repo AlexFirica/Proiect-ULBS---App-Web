@@ -186,15 +186,15 @@ exports.createFromTemplate = async (req, res) => {
       return res.status(404).json({ message: 'Șablonul de temă specificat nu a fost găsit.' });
     }
 
-    const newHomework = await Homework.create({
-      title: foundTemplate.title,
-      description: foundTemplate.description,
-      classroomId,
-      testCases: foundTemplate.testCases || [],
-      rewardCoins: foundTemplate.rewardCoins || 50,
-      rewardXp: foundTemplate.rewardXp || 10,
-      deadline: deadline || null
-    });
+    // Exemplu structură corectă pentru o temă generată de AI care poate fi rezolvată
+const newHomework = {
+    title: generatedTitle,
+    description: generatedDescription,
+    testInput: "5\n1 2 3 4 5",       // Date de intrare pentru testare
+    expectedOutput: "15",            // Output-ul așteptat de compilator
+    xpReward: 20,
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 zile termen limită
+};  
 
     res.status(201).json({
       message: 'Tema a fost generată și atribuită cu succes!',

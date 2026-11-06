@@ -1,39 +1,76 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const Test = require('../models/Test.models');
+const TestSubmission = require('../models/testSubmission.model');
+const User = require('../models/user.model');
+const { protect } = require('../middleware/auth.middleware');
 
-const PISTON_API_URL = 'http://localhost:2000/api/v2/execute';
+const PISTON_API_URL = process.env.PISTON_API_URL ? `${process.env.PISTON_API_URL}/execute` : 'http://localhost:2000/api/v2/execute';
 
-// Ruta prin care elevul trimite rezolvarea unui test/problemă
-router.post('/submit-test', async (req, res) => {
+// GET /api/tests/classroom/:classroomId - Preluare teste clasă + rezolvări ale elevului
+router.get('/classroom/:classroomId', protect, async (req, res) => {
+  try {
+    const { classroomId } = req.params;
+    const tests = await Test.find({ classroomId }).sort({ createdAt: -1 });
+    
+    let submissions = [];
+    const userId = req.user._id || req.user.id;
+    if (req.user.role !== 'teacher' && req.user.role !== 'profesor') {
+      submissions = await TestSubmission.find({ studentId: userId, testId: { $in: tests.map(t => t._id) } });
+    }
+
+    res.json({ tests, submissions });
+  } catch (err) {
+    res.status(500).json({ message: "Eroare la preluarea testelor.", error: err.message });
+  }
+});
+
+// POST /api/tests/create - Creează test nou (doar profesori)
+router.post('/create', protect, async (req, res) => {
+  try {
+    const { classroomId, title, description, difficulty, xp, testCases } = req.body;
+    const userId = req.user._id || req.user.id;
+
+    const newTest = new Test({
+      classroomId, title, description, difficulty, xp: xp || 15, testCases, createdBy: userId
+    });
+    await newTest.save();
+    res.status(201).json({ success: true, test: newTest });
+  } catch (err) {
+    res.status(500).json({ message: "Eroare la crearea testului.", error: err.message });
+  }
+});
+
+// POST /api/tests/submit-test - Evaluare cod elev prin Piston & Salvare Notă/XP în DB
+router.post('/submit-test', protect, async (req, res) => {
     try {
-        const { studentId, problemId, code, language, testCases } = req.body; 
-        // testCases este un array trimis de baza de date cu exemplele profesorului: 
-        // [{ input: "5\n1 2 3 4 5", expectedOutput: "15" }, ...]
+        const { problemId, code, language } = req.body; 
+        const studentId = req.user._id || req.user.id;
 
+        const testDoc = await Test.findById(problemId);
+        if (!testDoc) return res.status(404).json({ message: "Testul nu exista." });
+
+        const testCases = testDoc.testCases;
         let passedTests = 0;
         let totalTests = testCases.length;
         let executionDetails = [];
 
-        // Rulăm codul elevului pentru fiecare test în parte
         for (let i = 0; i < totalTests; i++) {
             const currentTest = testCases[i];
-
             const pistonResponse = await axios.post(PISTON_API_URL, {
-                language: language || 'gcc', // Folosește 'gcc' pentru C++
-                version: '*',
+                language: language || 'c++',
+                version: '10.2.0',
                 files: [{ content: code }],
-                stdin: currentTest.input // Trimitem input-ul specific testului către program
+                stdin: currentTest.input || ''
             });
 
             const result = pistonResponse.data;
-
-            // Verificăm erorile de compilare
-            if (result.compile && result.compile.stderr) {
+            if (result.compile && result.compile.code !== 0) {
                 return res.json({
                     status: 'Compilation Error',
-                    message: result.compile.stderr,
-                    grade: 1 // Notă minimă din oficiu
+                    message: result.compile.stderr || result.compile.output,
+                    grade: 1
                 });
             }
 
@@ -48,24 +85,35 @@ router.post('/submit-test', async (req, res) => {
             }
         }
 
-        // Calcularea notei ca la școală (de la 1 la 10)
-        // Formula: 1 (din oficiu) + (teste trecute / total teste) * 9
-        let grade = 1 + (passedTests / totalTests) * 9;
-        grade = Math.round(grade * 100) / 100; // Rotunjire la 2 zecimale
+        let grade = 1 + (passedTests / (totalTests || 1)) * 9;
+        grade = Math.round(grade * 100) / 100;
+        const xpEarned = passedTests === totalTests ? testDoc.xp : 0;
 
-        // Aici poți salva nota și rezultatul în MongoDB (folosind submission.model.js)
-        // Exemplu: await Submission.create({ studentId, problemId, grade, details: executionDetails });
+        // Salvare rezolvare în MongoDB
+        const submission = await TestSubmission.create({
+            testId: problemId,
+            studentId,
+            grade,
+            passedTests,
+            totalTests,
+            xpEarned,
+            details: executionDetails
+        });
+
+        if (xpEarned > 0) {
+            await User.findByIdAndUpdate(studentId, { $inc: { xp: xpEarned } });
+        }
 
         res.json({
             status: passedTests === totalTests ? 'Accepted' : 'Wrong Answer',
-            passed: `${passedTests}/${totalTests} teste trecute`,
-            grade: grade, // Aceasta este nota oficială care va apărea în catalogul profesorului
+            passed: `${passedTests}/${totalTests}`,
+            grade,
+            xpEarned,
             details: executionDetails
         });
 
     } catch (error) {
-        console.error("Eroare la evaluare:", error.message);
-        res.status(500).json({ error: "Eroare internă la procesarea testului." });
+        res.status(500).json({ error: "Eroare la procesarea testului: " + error.message });
     }
 });
 
