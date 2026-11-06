@@ -1,15 +1,15 @@
 // server.js (backend)
-// Importarea rutei pentru gamification
-const gamificationRoutes = require('./routes/gamification');  
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+// Importare rute
 const authRoutes = require('./routes/auth.routes');
 const homeworkRoutes = require('./routes/homework.routes');
 const classroomRoutes = require('./routes/classroom.routes');
+const gamificationRoutes = require('./routes/gamification.routes'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,20 +29,16 @@ app.use(express.json());
 
 const publicPath = path.join(__dirname, '../../frontend/public');
 app.use(express.static(publicPath));
-// Integrare rute gamification
-app.use('/api/gamification', gamificationRoutes);
 
 // Rute pagini HTML
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/login.html', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
-
-// Rută veche, păstrată doar ca redirect de siguranță
 app.get('/dashboard.html', (req, res) => res.redirect('/login.html'));
-
 app.get('/dashboard-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-teacher.html')));
 app.get('/dashboard-student.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-student.html')));
 app.get('/classrooms-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-teacher.html')));
 app.get('/classrooms-student.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-student.html')));
+app.get('/avatar.html', (req, res) => res.sendFile(path.join(publicPath, 'avatar.html')));
 app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'settings.html')));
 app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
 
@@ -50,6 +46,7 @@ app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'c
 app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
+app.use('/api/gamification', gamificationRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 

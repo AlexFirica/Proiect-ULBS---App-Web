@@ -6,7 +6,9 @@
 <title>Avatar Studio - Bac & C++ Academy</title>
 <style>
 *{box-sizing:border-box}
-body{background:#0f172a;color:#f8fafc;font-family:'Segoe UI',Tahoma,sans-serif;margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+body{background:#0f172a;color:#f8fafc;font-family:'Segoe UI',Tahoma,sans-serif;margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:64px 20px 20px}
+.back-btn{position:fixed;top:16px;left:16px;z-index:20;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:linear-gradient(145deg,#1e1b4b,#312e81);border:1px solid #6366f1;color:#e0e7ff;font-weight:700;font-size:13px;text-decoration:none;box-shadow:0 0 14px rgba(99,102,241,.35);transition:transform .15s,box-shadow .15s}
+.back-btn:hover{transform:translateX(-2px);box-shadow:0 0 18px rgba(99,102,241,.65)}
 .app{display:flex;flex-wrap:wrap;gap:28px;background:#1e293b;padding:28px;border-radius:20px;border:1px solid #334155;box-shadow:0 10px 25px rgba(0,0,0,.5);max-width:1000px;width:100%}
 .left{display:flex;flex-direction:column;align-items:center;gap:12px;width:270px;margin:0 auto}
 .card{width:100%;display:flex;flex-direction:column;align-items:center;background:linear-gradient(145deg,#1e1b4b,#312e81);padding:16px;border-radius:16px;border:2px solid var(--fc,#6366f1);box-shadow:0 0 22px var(--fc,#6366f1)}
@@ -50,6 +52,7 @@ button:hover{filter:brightness(.88)}
 </style>
 </head>
 <body>
+<a class="back-btn" id="backBtn" href="/dashboard-student.html">← Înapoi la dashboard</a>
 <div class="app">
   <div class="left">
     <div class="card" id="card">
@@ -63,7 +66,7 @@ button:hover{filter:brightness(.88)}
         <svg class="layer" id="ov-hand" viewBox="0 0 100 100"></svg>
         <div id="ov-pet"></div>
       </div></div>
-      <div class="pname">Student_01</div>
+      <div class="pname" id="pname">Student_01</div>
       <div class="ptitle" id="ptitle"></div>
       <div class="xpbar"><i id="xpfill"></i></div>
       <div class="xptxt" id="xptxt"></div>
@@ -85,21 +88,15 @@ button:hover{filter:brightness(.88)}
 <div id="toast"></div>
 
 <script>
-/* ============ POZIȚII (modifică aici!) ============
-   x, y = deplasare în % din cadru (x+ = dreapta, y+ = jos)
-   s    = mărime (1 = normal, 0.8 = mai mic)
-   avatar.scale = cât de mare e capul (% din cadru), avatar.top = distanța de sus (%)
-   body.y = mută gâtul și umerii (sus/jos)
-   pet.x / pet.y = distanța față de stânga / jos (%), pet.size = mărime în px */
+/* ============ POZIȚII ============ */
 const POS={
   avatar:{scale:80,top:6},
-  body:{y:-4},            // gât + umeri + ținută (mută tot corpul sus/jos)
-  face:{x:0,y:0,s:1},      // ochelari (se potrivesc singuri pe ochi; x,y = corecții fine)
-  hand:{x:3,y:3,s:.8},     // armă
-  pet:{x:3,y:3,size:30}    // companion
+  body:{y:-3},
+  face:{x:0,y:0,s:1},
+  hand:{x:3,y:3,s:.8},
+  pet:{x:3,y:3,size:30}
 };
 const ORG={head:'50% 30%',hand:'100% 100%'};
-/* ================================================= */
 
 const R={common:{c:'#94a3b8',p:80},rare:{c:'#38bdf8',p:200},epic:{c:'#a855f7',p:500},legendary:{c:'#f59e0b',p:1200}};
 const NONE={id:'none',name:'Nimic',r:'common',p:0,v:null,e:'∅'};
@@ -131,7 +128,6 @@ const SLOTS={
  features:{label:'✨ Detalii',param:'features',items:[NONE,
   it('d1','Pistrui Debug','common','freckles',{free:1}),it('d2','Obraji Hot Reload','common','blush',{free:1}),
   it('d3','Semn din Naștere','rare','birthmark'),it('d4','Mustața Senior Dev','epic','mustache')]},
-
  clothing:{label:'👕 Ținută',overlay:1,items:[
   it('k0','Tricou de Bază','common','<path d="'+D+'" fill="#475569"/><path d="M36 77 Q50 85 64 77" fill="none" stroke="#334155" stroke-width="2"/>',{free:1}),
   it('k1','Tunică de Ucenic','common','<path d="'+D+'" fill="#92400e"/><path d="M34 75 Q50 86 66 75" fill="none" stroke="#fde68a" stroke-width="1.4"/>',{free:1}),
@@ -181,6 +177,7 @@ const HAIRC=['0e0e0e','6a4e35','b9a05f','cb6820','ac6511','562306','e5d7a3'];
 const BG=['3b3a8c','0f766e','b45309','7e22ce','0e7490','be185d'];
 const COLORS=[{key:'skin',label:'Piele',list:SKIN},{key:'hairColor',label:'Culoare păr',list:HAIRC},{key:'bg',label:'Fundal',list:BG}];
 const DEF={equip:{hair:'h1',eyes:'e1',mouth:'m1',eyebrows:'b3',glasses:'none',earrings:'none',features:'none',clothing:'k0',hand:'none',pet:'none',frame:'f0',title:'none'},skin:SKIN[1],hairColor:HAIRC[1],bg:BG[0]};
+let SERVER=false;
 let S=load(),tab='hair',preview={...S.equip},pv={skin:S.skin,hairColor:S.hairColor,bg:S.bg};
 const $=id=>document.getElementById(id);
 
@@ -253,32 +250,132 @@ function renderPanel(){
 }
 const unowned=()=>Object.keys(SLOTS).map(s=>find(s,preview[s])).filter(i=>!owned(i)&&!locked(i));
 function updateBuy(){const u=unowned(),c=u.reduce((a,i)=>a+i.p,0),b=$('buyBtn');b.style.display=u.length?'':'none';b.textContent='🛒 Cumpără ('+u.length+') • 🪙 '+c}
-function buyAll(){const u=unowned(),c=u.reduce((a,i)=>a+i.p,0);
-  if(c>S.coins)return toast('Nu ai destule monede! Fă daily login sau câștigă o bătălie.');
-  S.coins-=c;u.forEach(i=>S.owned.push(i.id));persist();toast('Ai cumpărat '+u.length+' item-uri! 🎉');render()}
-function save(){
+
+async function buyAll(){
+  const u=unowned(),c=u.reduce((a,i)=>a+i.p,0);
+  if(c>S.coins)return toast('Nu ai destule monede! Fă daily login sau rezolvă teme.');
+  if(SERVER){try{const d=await api('/api/gamification/shop/buy',{itemIds:u.map(i=>i.id)});S.coins=d.coins;S.owned=d.owned;persist();}catch(e){return toast(e.message)}}
+  else{S.coins-=c;u.forEach(i=>S.owned.push(i.id));persist()}
+  toast('Ai cumpărat '+u.length+' item-uri! 🎉');render()}
+
+async function save(){
   if(unowned().length)return toast('Cumpără mai întâi item-urile nedeținute.');
   if(Object.keys(SLOTS).some(s=>locked(find(s,preview[s]))))return toast('Ai item-uri blocate de nivel.');
-  S.equip={...preview};S.skin=pv.skin;S.hairColor=pv.hairColor;S.bg=pv.bg;persist();
-  try{localStorage.setItem('avatarUrl',avatarUrl(S.equip,{skin:S.skin,hairColor:S.hairColor,bg:S.bg}));localStorage.setItem('avatarBg',S.bg)}catch(e){}
-  const userId=localStorage.getItem('userId')||'USER_ID_DEMO';
-  fetch('/api/gamification/avatar',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({userId,avatarConfig:{equip:S.equip,skin:S.skin,hairColor:S.hairColor,bg:S.bg}})}).catch(()=>{});
-  toast('Avatarul a fost salvat pe profilul tău! 💾');
+  
+  const url=avatarUrl(preview,pv);
+  S.equip={...preview};S.skin=pv.skin;S.hairColor=pv.hairColor;S.bg=pv.bg;
+  persist();
+
+  if(SERVER){
+    try{
+      const res = await api('/api/gamification/avatar',{equip:preview,skin:pv.skin,hairColor:pv.hairColor,bg:pv.bg,avatarUrl:url});
+      applyServer(res);
+    }catch(e){return toast(e.message)}
+  }
+  
+  preview={...S.equip};pv={skin:S.skin,hairColor:S.hairColor,bg:S.bg};
+  try{localStorage.setItem('avatarUrl',url);localStorage.setItem('avatarBg',S.bg)}catch(e){}
+  toast('Avatarul a fost salvat pe profilul tău! 💾');render();
 }
+
+async function api(path,body){
+  const opt={headers:{'Authorization':'Bearer '+localStorage.getItem('token'),'Content-Type':'application/json'}};
+  if(body!==undefined){opt.method='POST';opt.body=JSON.stringify(body)}
+  const r=await fetch(path,opt);
+  if(r.status===401){localStorage.clear();location.href='/login.html';throw new Error('Sesiune expirată')}
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.message||'Eroare server');
+  return d;
+}
+
+function applyServer(d){
+  if(!d) return;
+  S.coins=d.coins ?? S.coins;
+  S.xp=d.xp ?? S.xp;
+  S.streak=d.streak ?? S.streak;
+  S.last=d.lastDailyClaim || S.last || '';
+  S.owned=d.owned || S.owned || [];
+  
+  const av = d.avatar || d.avatar_config || d.avatarConfig;
+  if(av && av.equip && typeof av.equip === 'object' && Object.keys(av.equip).length > 0){
+    S.equip = { ...DEF.equip, ...av.equip };
+    if(av.skin) S.skin = av.skin;
+    if(av.hairColor) S.hairColor = av.hairColor;
+    if(av.bg) S.bg = av.bg;
+  }
+  preview = { ...S.equip };
+  pv = { skin: S.skin, hairColor: S.hairColor, bg: S.bg };
+  persist();
+
+  const url = d.avatarUrl || (av ? avatarUrl(S.equip, { skin: S.skin, hairColor: S.hairColor, bg: S.bg }) : '');
+  try{
+    if(url) localStorage.setItem('avatarUrl', url);
+    if(S.bg) localStorage.setItem('avatarBg', S.bg);
+  }catch(e){}
+}
+
 function resetPreview(){preview={...S.equip};pv={skin:S.skin,hairColor:S.hairColor,bg:S.bg};render();toast('Ai revenit la avatarul salvat.')}
 const rnd=a=>a[Math.floor(Math.random()*a.length)];
 function randomize(){
   Object.keys(SLOTS).forEach(k=>{preview[k]=rnd(SLOTS[k].items.filter(i=>!locked(i)&&owned(i))).id});
   pv.skin=rnd(SKIN);pv.hairColor=rnd(HAIRC);pv.bg=rnd(BG);render()}
-function gain(xp,coins){const b=level();S.xp+=xp;S.coins+=coins;persist();if(level()>b)toast('🎉 Level up! Nivel '+level()+' – verifică item-urile de rang noi!');render()}
-function daily(){const today=new Date().toDateString();if(S.last===today)return toast('Ai luat deja bonusul de azi. Revino mâine!');
-  const y=new Date(Date.now()-864e5).toDateString();S.streak=S.last===y?S.streak+1:1;S.last=today;
-  const bonus=S.streak%7===0?200:50+Math.min(S.streak,6)*10;gain(20,bonus);toast('Daily login: +'+bonus+' 🪙 (streak '+S.streak+')')}
-function battle(){const a=Math.floor(Math.random()*6)+4,b=Math.floor(Math.random()*7)+3;
-  if(a>b){gain(40,90);toast('⚔️ Victorie '+a+'–'+b+'! +40 XP, +90 🪙')}else{gain(10,20);toast('⚔️ Înfrângere '+a+'–'+b+'. +10 XP, +20 🪙')}}
+function levelUpCheck(before){if(level()>before)toast('🎉 Level up! Nivel '+level()+' – verifică item-urile de rang noi!')}
+function gain(xp,coins){const b=level();S.xp+=xp;S.coins+=coins;persist();levelUpCheck(b);render()}
+
+async function daily(){
+  const b=level();
+  if(SERVER){
+    try{
+      const d=await api('/api/gamification/daily',{});
+      applyServer(d);
+      toast('Daily login: +'+d.reward+' 🪙 și +'+d.xpReward+' XP (streak '+d.streak+')');
+      levelUpCheck(b);
+      render();
+    }catch(e){
+      toast(e.message);
+    }
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  if(S.last===today) return toast('Ai luat deja bonusul de azi. Revino mâine!');
+  const yesterday = new Date(Date.now()-864e5).toISOString().split('T')[0];
+  S.streak = S.last===yesterday ? (S.streak||0)+1 : 1;
+  S.last = today;
+  const bonus = S.streak%7===0 ? 200 : 50+Math.min(S.streak,6)*10;
+  gain(20,bonus);
+  toast('Daily login: +'+bonus+' 🪙 (streak '+S.streak+')');
+}
+
+async function battle(){
+  const b=level();
+  if(SERVER){
+    try{const d=await api('/api/gamification/battle-demo',{});applyServer(d);
+      toast(d.won?'⚔️ Victorie '+d.a+'–'+d.b+'! +40 XP, +90 🪙':'⚔️ Înfrângere '+d.a+'–'+d.b+'. +10 XP, +20 🪙');levelUpCheck(b);render()}
+    catch(e){toast(e.message)}
+    return;
+  }
+  const a=Math.floor(Math.random()*6)+4,c=Math.floor(Math.random()*7)+3;
+  if(a>c){gain(40,90);toast('⚔️ Victorie '+a+'–'+c+'! +40 XP, +90 🪙')}else{gain(10,20);toast('⚔️ Înfrângere '+a+'–'+c+'. +10 XP, +20 🪙')}}
+
 let tt;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
-render();
+(function(){
+  let role='student';
+  try{const u=JSON.parse(localStorage.getItem('user')||'null');if(u&&u.role)role=u.role}catch(e){}
+  $('backBtn').href=(role==='teacher'||role==='profesor')?'/dashboard-teacher.html':'/dashboard-student.html';
+})();
+async function boot(){
+  try{const u=JSON.parse(localStorage.getItem('user')||'null');if(u&&u.name)$('pname').textContent=u.name}catch(e){}
+  if(localStorage.getItem('token')){
+    try{
+      const d=await api('/api/gamification/me');
+      SERVER=true;
+      applyServer(d);
+    }
+    catch(e){toast('Backend indisponibil — mod demo (datele nu se salvează pe server).')}
+  }
+  preview={...S.equip};pv={skin:S.skin,hairColor:S.hairColor,bg:S.bg};render();
+}
+boot();
 </script>
 </body>
 </html>

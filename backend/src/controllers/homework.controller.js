@@ -1,4 +1,4 @@
-// backend/controllers/homework.controller.js
+// backend/src/controllers/homework.controller.js
 const Homework = require('../models/homework.model');
 const axios = require('axios');
 const Submission = require('../models/submission.model');
@@ -161,7 +161,7 @@ const deleteHomework = async (req, res) => {
   }
 };
 
-// 6. Evaluarea codului trimis de elev (execuție reală prin Piston + XP condiționat)
+// 6. Evaluarea codului trimis de elev (execuție reală prin Piston + XP și Monede condiționate)
 const submitCodeTask = async (req, res) => {
   try {
     const { sourceCode } = req.body;
@@ -204,9 +204,14 @@ const submitCodeTask = async (req, res) => {
     const alreadyPassed = existing?.status === 'passed';
 
     let xpEarned = 0;
+    let coinsEarned = 0;
+
     if (isCorrect && !alreadyPassed) {
       xpEarned = homework.xpReward || 10;
-      await User.findByIdAndUpdate(studentId, { $inc: { xp: xpEarned } });
+      coinsEarned = xpEarned * 5; // Oferim 5 monede pentru fiecare punct XP câștigat
+      await User.findByIdAndUpdate(studentId, {
+        $inc: { xp: xpEarned, coins: coinsEarned }
+      });
     }
 
     await Submission.findOneAndUpdate(
@@ -218,11 +223,12 @@ const submitCodeTask = async (req, res) => {
     return res.status(200).json({
       success: isCorrect,
       message: isCorrect
-        ? (alreadyPassed ? 'Corect! (Deja notată anterior — fără XP suplimentar)' : 'Răspuns corect! Felicitări!')
+        ? (alreadyPassed ? 'Corect! (Deja notată anterior — fără XP/monede suplimentare)' : `Răspuns corect! Felicitări! Ai primit +${xpEarned} XP și +${coinsEarned} monede 🪙`)
         : 'Răspuns incorect. Verifică output-ul și încearcă din nou.',
       output: actualOutput,
       expectedOutput,
-      xpEarned
+      xpEarned,
+      coinsEarned
     });
   } catch (error) {
     console.error("Eroare Piston (submit):", error.message);
