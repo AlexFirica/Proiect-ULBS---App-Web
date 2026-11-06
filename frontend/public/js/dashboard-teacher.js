@@ -118,6 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.reloadClassrooms = loadClassrooms;
 
+  // Folosite de exercise-catalog.js (catalogul de exerciții)
+  window.getCurrentClassroom = () => lastLoadedClassrooms.find(c => String(c.id) === String(currentClassroomId)) || null;
+  window.refreshClassroomModal = async () => {
+    await loadClassrooms();
+    openClassroomModal(currentClassroomId, cmTitle.textContent);
+  };
+
   function renderStats(classrooms) {
     const totalClassrooms = classrooms.length;
     const totalHomeworks = classrooms.reduce((acc, c) => acc + (c.homeworks?.length || 0), 0);

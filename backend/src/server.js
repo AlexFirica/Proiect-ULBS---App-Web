@@ -5,10 +5,13 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+// Importare rute
 const authRoutes = require('./routes/auth.routes');
 const homeworkRoutes = require('./routes/homework.routes');
 const classroomRoutes = require('./routes/classroom.routes');
 const courseRoutes = require('./routes/course.routes');
+const gamificationRoutes = require('./routes/gamification.routes');
+const teacherRoutes = require('./routes/teacher.routes'); // 👈 Adăugat
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,14 +35,12 @@ app.use(express.static(publicPath));
 // Rute pagini HTML
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
 app.get('/login.html', (req, res) => res.sendFile(path.join(publicPath, 'login.html')));
-
-// Rută veche, păstrată doar ca redirect de siguranță
 app.get('/dashboard.html', (req, res) => res.redirect('/login.html'));
-
 app.get('/dashboard-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-teacher.html')));
 app.get('/dashboard-student.html', (req, res) => res.sendFile(path.join(publicPath, 'dashboard-student.html')));
 app.get('/classrooms-teacher.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-teacher.html')));
 app.get('/classrooms-student.html', (req, res) => res.sendFile(path.join(publicPath, 'classrooms-student.html')));
+app.get('/avatar.html', (req, res) => res.sendFile(path.join(publicPath, 'avatar.html')));
 app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'settings.html')));
 app.get('/cursuri.html', (req, res) => res.sendFile(path.join(publicPath, 'cursuri.html')));
 app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
@@ -49,6 +50,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/gamification', gamificationRoutes);
+app.use('/api/teacher', teacherRoutes); // 👈 Adăugat
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 
