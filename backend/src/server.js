@@ -10,7 +10,8 @@ const authRoutes = require('./routes/auth.routes');
 const homeworkRoutes = require('./routes/homework.routes');
 const classroomRoutes = require('./routes/classroom.routes');
 const courseRoutes = require('./routes/course.routes');
-const gamificationRoutes = require('./routes/gamification.routes'); 
+const gamificationRoutes = require('./routes/gamification.routes');
+const teacherRoutes = require('./routes/teacher.routes'); // 👈 Adăugat
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +64,7 @@ app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/teacher', teacherRoutes); // 👈 Adăugat
 
 // Rute API pentru Teste (Salvare și Preluare din colecția separată 'tests' din MongoDB)
 app.post('/api/tests', async (req, res) => {

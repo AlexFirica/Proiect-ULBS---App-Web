@@ -94,7 +94,10 @@ const getClassrooms = async (req, res) => {
 
     const classroomsWithHomeworks = await Promise.all(
       classrooms.map(async (cls) => {
-        const homeworks = await Homework.find({ classroomId: cls.id.toString() });
+        // Elevii nu primesc testele (conțin răspunsurile corecte)
+        const homeworkQuery = Homework.find({ classroomId: cls.id.toString() });
+        if (!isTeacherRole) homeworkQuery.select('-testCases -testInput -expectedOutput');
+        const homeworks = await homeworkQuery;
         let pendingCount = homeworks.length;
         let homeworksWithStatus = homeworks;
 
