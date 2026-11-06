@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -89,11 +88,16 @@
           <div id="cm-xp-bar" style="background:linear-gradient(90deg,#6366f1,#8b5cf6); height:100%; width:0%; transition:width 0.4s ease;"></div>
         </div>
       </div>
+      
+      <!-- TAB-URI MODAL -->
       <div style="display:flex; border-bottom:1px solid #e2e8f0;">
         <button class="cm-tab active" data-tab="teme" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📝 Teme</button>
         <button class="cm-tab" data-tab="cursuri" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📚 Cursuri</button>
+        <button class="cm-tab" data-tab="teste" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📋 Teste</button>
         <button class="cm-tab" data-tab="elevi" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">👥 Elevi</button>
       </div>
+
+      <!-- CONTINUT TAB-URI -->
       <div style="padding:20px; overflow-y:auto; flex:1;">
         <div id="cm-pane-teme">
           <ul id="cm-homework-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
@@ -101,6 +105,15 @@
         <div id="cm-pane-cursuri" hidden>
           <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
         </div>
+        
+        <!-- PANOU TESTE NOU -->
+        <div id="cm-pane-teste" hidden>
+          <button class="btn-primary" id="cm-add-test-btn" style="margin-bottom:12px;">+ Adaugă test</button>
+          <ul id="cm-tests-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
+            <p style="color:#94a3b8; margin:0;">Niciun test momentan.</p>
+          </ul>
+        </div>
+
         <div id="cm-pane-elevi" hidden>
           <table style="width:100%; border-collapse:collapse; font-size:14px;">
             <thead>

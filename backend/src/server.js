@@ -14,6 +14,8 @@ const gamificationRoutes = require('./routes/gamification.routes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const testRoutes = require('./routes/testRoutes'); // sau calea corectă către fișierul tău testRoutes.js
+
 // Conectare MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/codeedu';
 mongoose.connect(MONGO_URI)
@@ -47,6 +49,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
 app.use('/api/gamification', gamificationRoutes);
+
+app.use('/api', testRoutes);
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 

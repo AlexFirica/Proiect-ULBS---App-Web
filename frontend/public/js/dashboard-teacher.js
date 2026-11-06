@@ -183,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cmInviteCode = document.getElementById('cm-invite-code');
   const cmHomeworkList = document.getElementById('cm-homework-list');
   const cmMaterialsList = document.getElementById('cm-materials-list');
+  const cmTestsList = document.getElementById('cm-tests-list'); // Listă teste
   const cmUploadBtn = document.getElementById('cm-upload-btn');
   const cmXpLabel = document.getElementById('cm-xp-label');
   const cmXpBar = document.getElementById('cm-xp-bar');
@@ -218,13 +219,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ─── Gestionare tab-uri (inclusiv 'teste') ────────────────────
   document.querySelectorAll('.cm-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.cm-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById('cm-pane-teme').hidden = tab.dataset.tab !== 'teme';
-      document.getElementById('cm-pane-cursuri').hidden = tab.dataset.tab !== 'cursuri';
-      document.getElementById('cm-pane-elevi').hidden = tab.dataset.tab !== 'elevi';
+      const targetTab = tab.dataset.tab;
+      document.getElementById('cm-pane-teme').hidden = targetTab !== 'teme';
+      document.getElementById('cm-pane-cursuri').hidden = targetTab !== 'cursuri';
+      const paneTeste = document.getElementById('cm-pane-teste');
+      if (paneTeste) paneTeste.hidden = targetTab !== 'teste';
+      document.getElementById('cm-pane-elevi').hidden = targetTab !== 'elevi';
     });
   });
 
@@ -260,6 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </li>`).join('')
       : '<li style="color:#94a3b8;">Nicio temă momentan.</li>';
+
+    if (cmTestsList) {
+      cmTestsList.innerHTML = '<li style="color:#94a3b8;">Niciun test momentan.</li>';
+    }
 
     await loadMaterials(id);
     await loadStudents(id);
