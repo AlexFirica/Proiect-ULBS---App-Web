@@ -65,4 +65,10 @@ function renderSidebar(role, activeKey) {
     });
     userProfile.appendChild(logoutBtn);
   }
+  // Face iconița de profil din antet să ducă la avatar, pe orice pagină cu sidebar
+  if (!document.querySelector('script[src="/js/avatar-icon.js"]')) {
+    const s = document.createElement('script');
+    s.src = '/js/avatar-icon.js';
+    document.body.appendChild(s);
+  }
 }

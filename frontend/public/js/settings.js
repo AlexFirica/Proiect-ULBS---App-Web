@@ -30,10 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ─── Limbă ────────────────────────────────────────────
   const languageSelect = document.getElementById('language-select');
-  languageSelect.value = localStorage.getItem('language') || 'ro';
-  languageSelect.addEventListener('change', () => {
-    localStorage.setItem('language', languageSelect.value);
-  });
+  languageSelect.value = i18n.getLang();
+  languageSelect.addEventListener('change', () => i18n.setLang(languageSelect.value));
 
   // ─── Schimbare parolă ─────────────────────────────────
   const changePasswordBtn = document.getElementById('change-password-btn');
