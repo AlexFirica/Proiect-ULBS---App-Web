@@ -106,12 +106,16 @@
           <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
         </div>
         
-        <!-- PANOU TESTE NOU -->
+        <!-- PANOU TESTE AVANSAT PERSISTENT ÎN DB -->
         <div id="cm-pane-teste" hidden>
-          <button class="btn-primary" id="cm-add-test-btn" style="margin-bottom:12px;">+ Adaugă test</button>
-          <ul id="cm-tests-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
-            <p style="color:#94a3b8; margin:0;">Niciun test momentan.</p>
-          </ul>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h4 style="margin: 0; color: #1e293b; font-size: 15px;">Evaluare automată & Teste C++</h4>
+            <button class="btn-primary" id="cm-open-test-generator-btn" style="padding: 8px 14px; font-size: 13px;">⚡ Generează test din materiale</button>
+          </div>
+          
+          <div id="cm-tests-container" style="display: flex; flex-direction: column; gap: 8px;">
+            <p id="cm-tests-empty" style="color: #94a3b8; margin: 0; font-size: 13px;">Niciun test în această clasă. Apasă pe „Generează test din materiale” pentru a adăuga unul.</p>
+          </div>
         </div>
 
         <div id="cm-pane-elevi" hidden>
@@ -131,8 +135,166 @@
     </div>
   </div>
 
+  <!-- MODAL GENERATOR TESTE DIN MATERIALE -->
+  <div id="test-generator-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1150; align-items:center; justify-content:center;">
+    <div style="background:white; width:90%; max-width:520px; border-radius:12px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+      <h3 style="margin-top:0; color:#1e293b;">⚡ Generare Test Inteligent din Materiale</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Sistemul va analiza cursurile urcate în clasă și va crea o problemă de programare adaptată.</p>
+      
+      <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:6px;">Selectează materialul sursă:</label>
+      <select id="tg-material-select" style="width:100%; margin-bottom:14px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+        <option value="Noțiuni introductive C++">📚 Noțiuni introductive C++</option>
+        <option value="Tablouri unidimensionale">📚 Tablouri unidimensionale</option>
+        <option value="Funcții recursive">📚 Funcții recursive</option>
+      </select>
+
+      <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:6px;">Nivel de dificultate:</label>
+      <select id="tg-difficulty-select" style="width:100%; margin-bottom:20px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+        <option value="usor">🟢 Ușor (Notțiuni de bază / Sintaxă)</option>
+        <option value="mediu">🟡 Mediu (Algoritmi standard / Tablouri)</option>
+        <option value="avansat">🔴 Avansat (Optimizări / Recursivitate / Structuri complexe)</option>
+      </select>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" id="tg-cancel-btn" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
+        <button type="button" id="tg-generate-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; font-weight:600; cursor:pointer;">✨ Generează testul</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/toast.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/classrooms-teacher.js"></script>
+  <script>
+    // Funcție pentru a încărca testele din MongoDB pentru clasa curentă
+    async function loadClassroomTests(classroomId) {
+      const testsContainer = document.getElementById('cm-tests-container');
+      if (!testsContainer) return;
+
+      try {
+        const res = await fetch(`/api/tests/${classroomId}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const tests = await res.json();
+
+        if (tests.length > 0) {
+          testsContainer.innerHTML = '';
+          tests.forEach(test => {
+            let badgeColor = '#dcfce7', textColor = '#166534';
+            if (test.difficulty === 'mediu') { badgeColor = '#fef3c7'; textColor = '#b45309'; }
+            if (test.difficulty === 'avansat') { badgeColor = '#fee2e2'; textColor = '#b91c1c'; }
+
+            const testCard = document.createElement('div');
+            testCard.style.cssText = "padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;";
+            testCard.innerHTML = `
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span style="background: ${badgeColor}; color: ${textColor}; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600;">${test.difficulty.toUpperCase()} (+${test.xp} XP)</span>
+                  <strong style="font-size: 14px; color: #1e293b;">${test.title}</strong>
+                </div>
+                <span style="font-size: 12px; color: #64748b;">${test.description}</span>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-primary" style="padding: 6px 10px; font-size: 12px; cursor: pointer; border-radius: 6px;" onclick="alert('Vizualizare test: ${test.title}')">👁️ Vizualizează</button>
+              </div>
+            `;
+            testsContainer.appendChild(testCard);
+          });
+        }
+      } catch (e) {
+        console.error("Eroare la preluarea testelor din DB:", e);
+      }
+    }
+
+    // Script pentru controlul modalului de generare teste, tab-uri și salvare în DB
+    document.addEventListener('DOMContentLoaded', () => {
+      const testGenModal = document.getElementById('test-generator-modal');
+      const openTestGenBtn = document.getElementById('cm-open-test-generator-btn');
+      const tgCancelBtn = document.getElementById('tg-cancel-btn');
+      const tgGenerateBtn = document.getElementById('tg-generate-btn');
+
+      if (openTestGenBtn) {
+        openTestGenBtn.addEventListener('click', () => {
+          if (testGenModal) {
+            testGenModal.style.display = 'flex';
+            testGenModal.removeAttribute('hidden');
+          }
+        });
+      }
+
+      if (tgCancelBtn) {
+        tgCancelBtn.addEventListener('click', () => {
+          if (testGenModal) {
+            testGenModal.setAttribute('hidden', '');
+            testGenModal.style.display = 'none';
+          }
+        });
+      }
+
+      if (tgGenerateBtn) {
+        tgGenerateBtn.addEventListener('click', async () => {
+          const materialSelect = document.getElementById('tg-material-select');
+          const difficultySelect = document.getElementById('tg-difficulty-select');
+          
+          const materialText = materialSelect.options[materialSelect.selectedIndex].text;
+          const difficultyVal = difficultySelect.value;
+
+          let xpVal = 15;
+          if (difficultyVal === 'mediu') xpVal = 30;
+          if (difficultyVal === 'avansat') xpVal = 50;
+
+          // Preluăm ID-ul clasei curente din fereastra modală de classroom (dacă este expus global sau din URL)
+          const classroomId = window.currentActiveClassroomId || paramsGetClassroomId();
+
+          if (!classroomId) {
+            alert("Selectează mai întâi un classroom!");
+            return;
+          }
+
+          const testData = {
+            classroomId,
+            title: `Test Automat C++ (${difficultyVal.toUpperCase()})`,
+            description: `Bazat pe materialul încărcat: „${materialText}”`,
+            difficulty: difficultyVal,
+            xp: xpVal,
+            sourceMaterial: materialText
+          };
+
+          try {
+            const response = await fetch('/api/tests', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify(testData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+              if (typeof showToast === 'function') {
+                showToast("Testul a fost generat și salvat în baza de date!", "success");
+              }
+              testGenModal.setAttribute('hidden', '');
+              testGenModal.style.display = 'none';
+              
+              // Reîncărcăm lista de teste
+              loadClassroomTests(classroomId);
+            } else {
+              alert("Eroare la salvarea testului.");
+            }
+          } catch (error) {
+            console.error("Eroare de rețea:", error);
+          }
+        });
+      }
+    });
+
+    function paramsGetClassroomId() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id');
+    }
+  </script>
 </body>
 </html>

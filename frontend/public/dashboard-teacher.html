@@ -155,7 +155,7 @@
   <div id="editor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
     <div style="background: white; width: 90%; height: 85%; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
       <div style="background: #1e293b; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h3 id="modal-homework-title" style="margin: 0; font-size: 18px;">💻 Editor C++ - Evaluare Temă</h3>
+        <h3 id="modal-homework-title" style="margin: 0; font-size: 18px;">💻 Editor C++ - Evaluare Test</h3>
         <button id="close-editor-btn" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
       </div>
       <div style="display: flex; flex: 1; overflow: hidden;">
@@ -168,8 +168,8 @@
         </div>
         <div style="width: 420px; display: flex; flex-direction: column; background: #f8fafc; overflow-y: auto; padding: 15px; gap: 15px;">
           <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <h4 id="homework-title-text" style="margin: 0 0 8px 0; color: #1e293b; font-size: 15px;">Mod Liber (Sandbox)</h4>
-            <p id="homework-desc-text" style="margin: 0; color: #475569; font-size: 13px; line-height: 1.4;">Poți rula orice cod dorești.</p>
+            <h4 id="homework-title-text" style="margin: 0 0 8px 0; color: #1e293b; font-size: 15px;">Detalii Test</h4>
+            <p id="homework-desc-text" style="margin: 0; color: #475569; font-size: 13px; line-height: 1.4;">Vizualizează cerința testului generat.</p>
           </div>
           <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
             <label for="custom-input" style="font-weight: bold; font-size: 13px; color: #1e293b; display: block; margin-bottom: 5px;">
@@ -177,8 +177,7 @@
             </label>
             <textarea id="custom-input" rows="3" placeholder="Scrie numerele pentru test..." style="width: 100%; border-radius: 6px; border: 1px solid #cbd5e1; padding: 8px; font-family: monospace; font-size: 12px; resize: vertical; box-sizing: border-box;"></textarea>
             <div style="display: flex; gap: 8px; margin-top: 10px;">
-              <button id="test-code-btn" style="flex: 1; background-color: #3b82f6; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">Testează</button>
-              <button id="submit-code-btn" style="flex: 1; background-color: #10b981; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">Trimite Final</button>
+              <button id="test-code-btn" style="flex: 1; background-color: #3b82f6; border: none; padding: 8px; border-radius: 6px; color: white; font-weight: bold; font-size: 12px; cursor: pointer;">Rulează Test</button>
             </div>
           </div>
           <div style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; flex: 1; min-height: 120px; overflow-y: auto; white-space: pre-wrap;" id="editor-console">
@@ -208,8 +207,8 @@
     </div>
   </div>
 
-  <!-- MODAL CLASSROOM (detalii - INCLUSIV TAB-UL ȘI PANOUL DE TESTE) -->
-  <div id="classroom-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;">
+  <!-- MODAL CLASSROOM (detalii) -->
+  <div id="classroom-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center;" data-classroom-id="">
     <div style="background:white; width:92%; max-width:680px; max-height:85vh; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
       <div style="padding:18px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#4f46e5,#6366f1); color:white;">
         <div>
@@ -231,7 +230,7 @@
         </div>
       </div>
 
-      <!-- TAB-URI MODAL (Teme, Cursuri, Teste, Elevi) -->
+      <!-- TAB-URI MODAL -->
       <div style="display:flex; border-bottom:1px solid #e2e8f0;">
         <button class="cm-tab active" data-tab="teme" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📝 Teme</button>
         <button class="cm-tab" data-tab="cursuri" style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600;">📚 Cursuri</button>
@@ -254,12 +253,16 @@
           <ul id="cm-materials-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
         </div>
 
-        <!-- PANOU TESTE -->
+        <!-- PANOU TESTE (Salvat în MongoDB) -->
         <div id="cm-pane-teste" hidden>
-          <button class="btn-primary" id="cm-add-test-btn" style="margin-bottom:12px;">+ Adaugă test</button>
-          <ul id="cm-tests-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;">
-            <p style="color:#94a3b8; margin:0;">Niciun test momentan.</p>
-          </ul>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h4 style="margin: 0; color: #1e293b; font-size: 15px;">Teste de Evaluare C++</h4>
+            <button class="btn-primary" id="cm-open-test-generator-btn" style="padding: 8px 14px; font-size: 13px;">⚡ Generează test din materiale</button>
+          </div>
+          
+          <div id="cm-tests-container" style="display: flex; flex-direction: column; gap: 8px;">
+            <p id="cm-tests-empty" style="color: #94a3b8; margin: 0; font-size: 13px;">Niciun test în această clasă. Apasă pe „Generează test din materiale” pentru a adăuga unul.</p>
+          </div>
         </div>
 
         <div id="cm-pane-elevi" hidden>
@@ -279,38 +282,30 @@
     </div>
   </div>
 
-  <!-- MODAL ADĂUGARE TEMĂ -->
-  <div id="add-homework-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
-    <div style="background:white; width:90%; max-width:480px; border-radius:12px; padding:24px; max-height:88vh; overflow-y:auto;">
-      <h3 style="margin-top:0;">Adaugă temă nouă</h3>
-      <input type="text" id="hw-title" placeholder="Titlul temei" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
-      <textarea id="hw-description" placeholder="Descriere" rows="3" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;"></textarea>
-      <label style="font-size:13px; color:#64748b;">Date de intrare (Input test)</label>
-      <textarea id="hw-testinput" placeholder="Ex: 10 15" rows="2" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-family:monospace;"></textarea>
-      <label style="font-size:13px; color:#64748b;">Output așteptat (exact)</label>
-      <textarea id="hw-expectedoutput" placeholder="Ex: Rezultatul este:25" rows="2" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-family:monospace;"></textarea>
-      <label style="font-size:13px; color:#64748b;">XP oferit</label>
-      <input type="number" id="hw-xp" value="10" min="0" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
-      <label style="font-size:13px; color:#64748b;">Termen limită</label>
-      <input type="datetime-local" id="hw-deadline" style="width:100%; margin-bottom:16px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
-      <div style="display:flex; gap:8px; justify-content:flex-end;">
-        <button id="hw-cancel-btn" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
-        <button id="hw-save-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer;">Salvează tema</button>
-      </div>
-    </div>
-  </div>
+  <!-- MODAL GENERATOR TESTE DIN MATERIALE -->
+  <div id="test-generator-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1150; align-items:center; justify-content:center;">
+    <div style="background:white; width:90%; max-width:520px; border-radius:12px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+      <h3 style="margin-top:0; color:#1e293b;">⚡ Generare Test Inteligent din Materiale</h3>
+      <p style="font-size:13px; color:#64748b; margin-bottom:16px;">Alege materialul și nivelul de dificultate pentru a genera testul automat.</p>
+      
+      <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:6px;">Selectează materialul sursă:</label>
+      <select id="tg-material-select" style="width:100%; margin-bottom:14px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+        <option value="Noțiuni introductive C++">📚 Noțiuni introductive C++ (Bazici)</option>
+        <option value="Tablouri unidimensionale">📚 Tablouri unidimensionale și Vectori</option>
+        <option value="Funcții recursive">📚 Funcții recursive și Algoritmi avanzați</option>
+      </select>
 
-  <!-- MODAL VIZUALIZARE MATERIAL -->
-  <div id="material-view-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1200; align-items:center; justify-content:center;">
-    <div style="background:white; width:92%; max-width:900px; height:85vh; border-radius:12px; overflow:hidden; display:flex; flex-direction:column;">
-      <div style="padding:14px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
-        <h4 id="mv-title" style="margin:0;">Material</h4>
-        <div>
-          <a id="mv-download" href="#" target="_blank" style="margin-right:16px; color:#4f46e5; text-decoration:none; font-size:14px;">⬇ Descarcă</a>
-          <button id="mv-close" style="background:none; border:none; font-size:20px; cursor:pointer;">&times;</button>
-        </div>
+      <label style="font-size:13px; font-weight:600; color:#334155; display:block; margin-bottom:6px;">Nivel de dificultate:</label>
+      <select id="tg-difficulty-select" style="width:100%; margin-bottom:20px; padding:9px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+        <option value="usor">🟢 Ușor (+15 XP)</option>
+        <option value="mediu">🟡 Mediu (+30 XP)</option>
+        <option value="avansat">🔴 Avansat (+50 XP)</option>
+      </select>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" id="tg-cancel-btn" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
+        <button type="button" id="tg-generate-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; font-weight:600; cursor:pointer;">✨ Generează testul</button>
       </div>
-      <div id="mv-body" style="flex:1; overflow:auto; background:#f1f5f9;"></div>
     </div>
   </div>
 
@@ -318,13 +313,85 @@
   <script src="/js/toast.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-teacher.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+  
   <script>
-    let monacoEditorInstance = null;
-    let currentActiveHomeworkId = null;
+    // Interceptăm orice click pe cardurile de classroom sau pe butoanele care deschid clasa
+    document.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-id], .classroom-card, [id*="classroom"]');
+      if (card) {
+        const clsId = card.dataset.id || card.getAttribute('data-id') || card.id;
+        if (clsId && clsId.length > 5) { // Verificăm să fie un ID valid (nu un simplu ID de element HTML)
+          window.currentActiveClassroomId = clsId;
+          const modal = document.getElementById('classroom-modal');
+          if (modal) modal.dataset.classroomId = clsId;
+        }
+      }
+    });
+
+    // Funcție inteligentă de preluare a ID-ului clasei active
+    function getActiveTestClassroomId() {
+      if (window.currentActiveClassroomId) return window.currentActiveClassroomId;
+      
+      const modal = document.getElementById('classroom-modal');
+      if (modal && modal.dataset.classroomId) return modal.dataset.classroomId;
+
+      // Căutăm direct în fereastră dacă scriptul tău extern stochează undeva starea
+      if (window.activeClassroom && window.activeClassroom._id) {
+        window.currentActiveClassroomId = window.activeClassroom._id;
+        return window.activeClassroom._id;
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('id')) return urlParams.get('id');
+
+      return null;
+    }
+
+    // Funcție globală pentru încărcarea testelor din baza de date MongoDB pentru clasa curentă
+    window.loadClassroomTests = async function(classroomId) {
+      const targetId = classroomId || getActiveTestClassroomId();
+      const testsContainer = document.getElementById('cm-tests-container');
+      if (!testsContainer || !targetId) return;
+
+      try {
+        const res = await fetch(`/api/tests/${targetId}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const tests = await res.json();
+
+        if (tests && tests.length > 0) {
+          testsContainer.innerHTML = '';
+          tests.forEach(test => {
+            let badgeColor = '#dcfce7', textColor = '#166534';
+            if (test.difficulty === 'mediu') { badgeColor = '#fef3c7'; textColor = '#b45309'; }
+            if (test.difficulty === 'avansat') { badgeColor = '#fee2e2'; textColor = '#b91c1c'; }
+
+            const testCard = document.createElement('div');
+            testCard.style.cssText = "padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;";
+            testCard.innerHTML = `
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <span style="background: ${badgeColor}; color: ${textColor}; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600;">${test.difficulty.toUpperCase()} (+${test.xp} XP)</span>
+                  <strong style="font-size: 14px; color: #1e293b;">${test.title}</strong>
+                </div>
+                <span style="font-size: 12px; color: #64748b;">${test.description}</span>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-primary" style="padding: 6px 10px; font-size: 12px; cursor: pointer; border-radius: 6px;" onclick="openTestPreview('${test.title}', '${test.description}')">👁️ Vizualizează</button>
+              </div>
+            `;
+            testsContainer.appendChild(testCard);
+          });
+        } else {
+          testsContainer.innerHTML = '<p id="cm-tests-empty" style="color: #94a3b8; margin: 0; font-size: 13px;">Niciun test în această clasă. Apasă pe „Generează test din materiale” pentru a adăuga unul.</p>';
+        }
+      } catch (e) {
+        console.error("Eroare la preluarea testelor din DB:", e);
+      }
+    };
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Gestionare tab-uri în modal (inclusiv 'teste')
+      // Gestionare tab-uri în modal
       document.querySelectorAll('.cm-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelectorAll('.cm-tab').forEach(t => t.classList.remove('active'));
@@ -342,110 +409,94 @@
         });
       });
 
-      const closeEditorBtn = document.getElementById('close-editor-btn');
-      const editorModal = document.getElementById('editor-modal');
-      const testCodeBtn = document.getElementById('test-code-btn');
-      const submitCodeBtn = document.getElementById('submit-code-btn');
-      const customInput = document.getElementById('custom-input');
-      const editorConsole = document.getElementById('editor-console');
-      const homeworkTitleText = document.getElementById('homework-title-text');
-      const homeworkDescText = document.getElementById('homework-desc-text');
+      // Gestionare modal generator teste
+      const testGenModal = document.getElementById('test-generator-modal');
+      const openTestGenBtn = document.getElementById('cm-open-test-generator-btn');
+      const tgCancelBtn = document.getElementById('tg-cancel-btn');
+      const tgGenerateBtn = document.getElementById('tg-generate-btn');
 
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('openSandbox') === '1') {
-        currentActiveHomeworkId = null;
-        homeworkTitleText.innerText = "Mod Liber (Sandbox)";
-        homeworkDescText.innerText = "Poți scrie și testa orice cod dorești.";
-        editorModal.style.display = 'flex';
-        initMonaco();
+      if (openTestGenBtn) {
+        openTestGenBtn.addEventListener('click', () => {
+          if (testGenModal) {
+            testGenModal.style.display = 'flex';
+            testGenModal.removeAttribute('hidden');
+          }
+        });
       }
 
+      if (tgCancelBtn) {
+        tgCancelBtn.addEventListener('click', () => {
+          if (testGenModal) {
+            testGenModal.setAttribute('hidden', '');
+            testGenModal.style.display = 'none';
+          }
+        });
+      }
+
+      // Salvare test generat direct în MongoDB
+      if (tgGenerateBtn) {
+        tgGenerateBtn.addEventListener('click', async () => {
+          const materialSelect = document.getElementById('tg-material-select');
+          const difficultySelect = document.getElementById('tg-difficulty-select');
+          
+          const materialText = materialSelect.options[materialSelect.selectedIndex].text;
+          const difficultyVal = difficultySelect.value;
+
+          let xpVal = 15;
+          if (difficultyVal === 'mediu') xpVal = 30;
+          if (difficultyVal === 'avansat') xpVal = 50;
+
+          const classroomId = getActiveTestClassroomId();
+
+          if (!classroomId) {
+            alert("Selectează mai întâi un classroom deschis!");
+            return;
+          }
+
+          const testData = {
+            classroomId,
+            title: `Test Automat C++ (${difficultyVal.toUpperCase()})`,
+            description: `Bazat pe materialul: ${materialText}`,
+            difficulty: difficultyVal,
+            xp: xpVal,
+            sourceMaterial: materialText
+          };
+
+          try {
+            const response = await fetch('/api/tests', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify(testData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+              if (typeof showToast === 'function') {
+                showToast("Testul a fost generat și salvat în baza de date!", "success");
+              }
+              testGenModal.setAttribute('hidden', '');
+              testGenModal.style.display = 'none';
+              
+              // Reîncărcăm lista de teste pentru această clasă
+              window.loadClassroomTests(classroomId);
+            } else {
+              alert("Eroare la salvarea testului.");
+            }
+          } catch (error) {
+            console.error("Eroare de rețea:", error);
+          }
+        });
+      }
+
+      const closeEditorBtn = document.getElementById('close-editor-btn');
+      const editorModal = document.getElementById('editor-modal');
       if (closeEditorBtn) {
         closeEditorBtn.addEventListener('click', () => {
           editorModal.style.display = 'none';
-        });
-      }
-
-      if (testCodeBtn) {
-        testCodeBtn.addEventListener('click', async () => {
-          if (!monacoEditorInstance) return;
-          const code = monacoEditorInstance.getValue();
-          const inputData = customInput.value;
-          const debugTerminal = document.getElementById('debug-terminal');
-          debugTerminal.style.display = 'none';
-          editorConsole.style.color = "#38bdf8";
-          editorConsole.innerText = "⏳ Se compilează și se rulează testul...";
-          try {
-            const response = await fetch('/api/homeworks/test-run', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              },
-              body: JSON.stringify({ sourceCode: code, customInput: inputData })
-            });
-            const result = await response.json();
-            if (result.compileError) {
-              editorConsole.style.color = "#f87171";
-              editorConsole.innerText = "❌ Compilarea a eșuat. Vezi detalii în terminalul de debug de sub editor.";
-              debugTerminal.style.display = 'block';
-              debugTerminal.textContent = result.compileError;
-            } else if (response.ok && result.success) {
-              editorConsole.style.color = "#4ade80";
-              editorConsole.innerText = `✅ Test finalizat!\n\n${result.output}`;
-            } else {
-              editorConsole.style.color = "#f87171";
-              editorConsole.innerText = `❌ Eroare de execuție:\n${result.message || 'Verifică sintaxa codului.'}`;
-            }
-          } catch (error) {
-            editorConsole.style.color = "#f87171";
-            editorConsole.innerText = "❌ Eroare gravă de conexiune cu serverul.";
-          }
-        });
-      }
-
-      if (submitCodeBtn) {
-        submitCodeBtn.addEventListener('click', async () => {
-          if (!monacoEditorInstance) return;
-          if (!currentActiveHomeworkId) {
-            showToast("Ești în Modul Liber (Sandbox). Deschide editorul dintr-o temă din Classroom pentru trimitere oficială!", "info");
-            return;
-          }
-          const code = monacoEditorInstance.getValue();
-          const debugTerminal = document.getElementById('debug-terminal');
-          debugTerminal.style.display = 'none';
-          editorConsole.style.color = "#facc15";
-          editorConsole.innerText = "⏳ Se evaluează soluția oficială pe server...";
-          try {
-            const response = await fetch(`/api/homeworks/${currentActiveHomeworkId}/submit`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-              },
-              body: JSON.stringify({ sourceCode: code })
-            });
-            const result = await response.json();
-            if (result.compileError) {
-              editorConsole.style.color = "#f87171";
-              editorConsole.innerText = "❌ Codul nu compilează. Vezi detalii în terminalul de debug de sub editor.";
-              debugTerminal.style.display = 'block';
-              debugTerminal.textContent = result.compileError;
-            } else if (response.ok && result.success) {
-              editorConsole.style.color = "#4ade80";
-              editorConsole.innerText = `✅ ${result.message}\n\n[Output]\n${result.output}\n\n🏆 Ai câștigat: +${result.xpEarned} XP!`;
-              if (typeof confetti === 'function') {
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-              }
-            } else {
-              editorConsole.style.color = "#f87171";
-              editorConsole.innerText = `❌ ${result.message}\n\n[Detalii]\nOutput obținut: ${result.output || '-'}\nOutput așteptat: ${result.expectedOutput || '-'}`;
-            }
-            if (typeof window.reloadClassrooms === 'function') await window.reloadClassrooms();
-          } catch (error) {
-            editorConsole.style.color = "#f87171";
-            editorConsole.innerText = "❌ Eroare de conexiune cu serverul.";
-          }
         });
       }
     });
@@ -455,7 +506,7 @@
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
         require(['vs/editor/editor.main'], function() {
           monacoEditorInstance = monaco.editor.create(document.getElementById('monaco-container'), {
-            value: '#include <iostream>\n\nusing namespace std;\n\nint main() {\n    // Scrie codul tău aici\n    \n    return 0;\n}',
+            value: '#include <iostream>\n\nusing namespace std;\n\nint main() {\n    // Vizualizare cod test generat\n    cout << "Test activ in curs..." << endl;\n    return 0;\n}',
             language: 'cpp',
             theme: 'vs-dark',
             automaticLayout: true,
@@ -465,31 +516,19 @@
       }
     }
 
-    window.openEditorWithHomework = async function(hwId) {
-      currentActiveHomeworkId = hwId;
+    window.openTestPreview = function(title, description) {
       const editorModal = document.getElementById('editor-modal');
       const homeworkTitleText = document.getElementById('homework-title-text');
       const homeworkDescText = document.getElementById('homework-desc-text');
+      
       editorModal.style.display = 'flex';
       initMonaco();
-      try {
-        const res = await fetch(`/api/homeworks/${hwId}`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        const homeworkData = await res.json();
-        if (res.ok) {
-          homeworkTitleText.innerText = homeworkData.title;
-          homeworkDescText.innerText = homeworkData.description;
-        } else {
-          homeworkTitleText.innerText = "Eroare";
-          homeworkDescText.innerText = "Nu s-au putut încărca detaliile temei.";
-        }
-      } catch (e) {
-        homeworkTitleText.innerText = "Eroare de rețea";
-        homeworkDescText.innerText = "Nu s-a putut contacta serverul.";
-      }
+
+      if (homeworkTitleText) homeworkTitleText.innerText = title;
+      if (homeworkDescText) homeworkDescText.innerText = description;
     };
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
   <script src="/js/avatar-icon.js"></script>
 </body>
 </html>

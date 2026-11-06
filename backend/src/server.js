@@ -15,7 +15,18 @@ const gamificationRoutes = require('./routes/gamification.routes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const testRoutes = require('./routes/testRoutes'); // sau calea corectă către fișierul tău testRoutes.js
+// Modelul Mongoose pentru Teste - Salvat în colecția separată 'tests'
+const TestSchema = new mongoose.Schema({
+  classroomId: { type: mongoose.Schema.Types.ObjectId, ref: 'Classroom', required: true },
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  difficulty: { type: String, enum: ['usor', 'mediu', 'avansat'], default: 'usor' },
+  xp: { type: Number, default: 15 },
+  sourceMaterial: { type: String },
+  createdAt: { type: Date, default: Date.now }
+}, { collection: 'tests' });
+
+const Test = mongoose.models.Test || mongoose.model('Test', TestSchema);
 
 // Conectare MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/codeedu';
@@ -46,14 +57,44 @@ app.get('/settings.html', (req, res) => res.sendFile(path.join(publicPath, 'sett
 app.get('/cursuri.html', (req, res) => res.sendFile(path.join(publicPath, 'cursuri.html')));
 app.get('/coming-soon.html', (req, res) => res.sendFile(path.join(publicPath, 'coming-soon.html')));
 
-// Rute API
+// Rute API existente
 app.use('/api/auth', authRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/homeworks', homeworkRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/gamification', gamificationRoutes);
 
-app.use('/api', testRoutes);
+// Rute API pentru Teste (Salvare și Preluare din colecția separată 'tests' din MongoDB)
+app.post('/api/tests', async (req, res) => {
+  try {
+    const { classroomId, title, description, difficulty, xp, sourceMaterial } = req.body;
+
+    const newTest = new Test({
+      classroomId,
+      title,
+      description,
+      difficulty,
+      xp,
+      sourceMaterial
+    });
+
+    const savedTest = await newTest.save();
+    res.status(201).json({ success: true, test: savedTest });
+  } catch (error) {
+    console.error("Eroare la salvarea testului:", error);
+    res.status(500).json({ success: false, message: "Eroare de server la salvarea testului." });
+  }
+});
+
+app.get('/api/tests/:classroomId', async (req, res) => {
+  try {
+    const tests = await Test.find({ classroomId: req.params.classroomId });
+    res.json(tests);
+  } catch (error) {
+    console.error("Eroare la preluarea testelor:", error);
+    res.status(500).json({ success: false, message: "Eroare la preluarea testelor." });
+  }
+});
 
 app.get('/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));
 
