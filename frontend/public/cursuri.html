@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codero - Cursuri</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/polish.css">
+  <link rel="stylesheet" href="/css/courses.css">
+  <script src="/js/theme-toggle.js"></script>
+  <style>
+    .lx-output { background:#0f172a; color:#e2e8f0; padding:12px; border-radius:8px; margin-top:10px; font-family:Consolas,monospace; font-size:13px; white-space:pre-wrap; }
+    .lx-output.err { color:#fca5a5; }
+    .lx-done { color:#059669; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <aside class="sidebar">
+      <div class="logo-section">
+        <span class="logo-icon">&lt;/&gt;</span>
+        <span class="logo-text">Codero</span>
+      </div>
+      <nav class="nav-menu" id="nav-menu"></nav>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="top-header">
+        <div class="top-nav-links"></div>
+        <div class="user-profile">
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <span class="user-name"></span>
+            <span class="user-role"></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-body">
+        <div class="primary-column" id="main"></div>
+        <div class="secondary-column" id="side"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/sidebar.js"></script>
+  <script>
+  (function () {
+    const savedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (!savedUser || !token) { window.location.href = '/login.html'; return; }
+
+    const user = JSON.parse(savedUser);
+    const isTeacher = user.role === 'teacher' || user.role === 'profesor';
+    document.querySelector('.user-name').textContent = user.name || user.email;
+    document.querySelector('.user-role').textContent = isTeacher ? 'profesor' : 'elev';
+    renderSidebar(isTeacher ? 'teacher' : 'student', 'cursuri');
+
+    const $ = id => document.getElementById(id);
+    const el = (tag, text, cls) => {
+      const e = document.createElement(tag);
+      if (text !== undefined && text !== null) e.textContent = text;
+      if (cls) e.className = cls;
+      return e;
+    };
+    // text cu `cod` -> noduri DOM sigure (fara innerHTML)
+    const rich = (text) => {
+      const frag = document.createDocumentFragment();
+      String(text).split('`').forEach((part, i) => {
+        frag.append(i % 2 ? el('code', part, 'inline') : document.createTextNode(part));
+      });
+      return frag;
+    };
+
+    async function api(path, options = {}) {
+      const res = await fetch('/api/courses' + path, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...(options.headers || {}) }
+      });
+      if (res.status === 401) { localStorage.clear(); window.location.href = '/login.html'; throw new Error('401'); }
+      return res.json();
+    }
+
+    let courses = [], chapters = [], lessons = [];
+
+    async function init() {
+      const data = await api('/');
+      if (!data.courses) { $('main').append(el('p', data.message || 'Eroare la incarcare.', 'lx-bad')); return; }
+      courses = data.courses; chapters = data.chapters; lessons = data.lessons;
+      showCourses();
+    }
+
+    // ---------- 1: lista de cursuri ----------
+    function showCourses() {
+      const main = $('main'); main.innerHTML = ''; $('side').innerHTML = '';
+      const banner = el('div', undefined, 'welcome-banner');
+      banner.append(el('h2', 'Cursuri'), el('p', 'Alege un curs și începe să înveți.'));
+      main.append(banner);
+
+      const grid = el('div', undefined, 'classrooms-grid');
+      courses.forEach(c => {
+        const ids = chapters.filter(ch => ch.course_id === c.id).map(ch => ch.id);
+        const list = lessons.filter(l => ids.includes(l.chapter_id));
+        const done = list.filter(l => l.completed).length;
+        const card = el('div', undefined, 'classroom-card class-card');
+        const top = el('div');
+        top.append(el('h4', c.title), el('p', c.description || ''));
+        card.append(top, el('span', done + ' / ' + list.length + ' lecții terminate', 'code-badge'));
+        card.onclick = () => showCourse(c);
+        grid.append(card);
+      });
+      if (!courses.length) grid.append(el('p', 'Niciun curs disponibil.', 'empty-widget-state'));
+      main.append(grid);
+    }
+
+    // ---------- 2: capitole + lectii ----------
+    function showCourse(course) {
+      const main = $('main'); main.innerHTML = ''; $('side').innerHTML = '';
+      const back = el('button', '← Toate cursurile', 'lx-back'); back.onclick = showCourses;
+      main.append(back, el('h2', course.title), el('p', course.description || '', 'lx-meta'));
+
+      chapters.filter(c => c.course_id === course.id).forEach(ch => {
+        const box = el('div', undefined, 'widget-box lx-chapter');
+        box.append(el('h4', ch.position + '. ' + ch.title));
+        const list = lessons.filter(l => l.chapter_id === ch.id);
+        if (!list.length) box.append(el('p', 'Lecțiile vin în curând.', 'empty-widget-state'));
+        list.forEach(l => {
+          const b = el('button', undefined, 'lx-lesson-btn');
+          b.append(el('span', (l.completed ? '✓ ' : '') + l.position + '. ' + l.title),
+                   el('span', l.estimated_minutes ? l.estimated_minutes + ' min' : '', 'lx-meta'));
+          b.onclick = () => openLesson(l.id, course);
+          box.append(b);
+        });
+        main.append(box);
+      });
+    }
+
+    // ---------- 3: lectia ----------
+    async function openLesson(id, course) {
+      const main = $('main'); main.innerHTML = '';
+      const back = el('button', '← ' + course.title, 'lx-back'); back.onclick = () => showCourse(course);
+      main.append(back);
+
+      const data = await api('/lessons/' + id);
+      if (!data.content) { main.append(el('p', data.message || 'Eroare.', 'lx-bad')); return; }
+
+      const art = el('article', undefined, 'lx-article');
+      art.append(el('h1', data.title));
+      data.content.forEach(b => art.append(renderBlock(b, id)));
+      main.append(art);
+
+      const side = $('side'); side.innerHTML = '';
+      const w = el('div', undefined, 'widget-box');
+      w.append(el('h4', 'În acest curs'));
+      chapters.filter(c => c.course_id === course.id).forEach(ch => {
+        w.append(el('p', ch.title, 'lx-meta'));
+        lessons.filter(l => l.chapter_id === ch.id).forEach(l => {
+          const b = el('button', (l.completed ? '✓ ' : '') + l.title, 'lx-lesson-btn' + (l.id === id ? ' current' : ''));
+          b.onclick = () => openLesson(l.id, course);
+          w.append(b);
+        });
+      });
+      side.append(w);
+    }
+
+    function renderBlock(b, lessonId) {
+      const wrap = el('div', undefined, 'lx-block');
+
+      if (b.type === 'text') {
+        const p = el('p'); p.append(rich(b.body)); wrap.append(p);
+      }
+      else if (b.type === 'callout') {
+        const c = el('div', undefined, 'lx-callout ' + (b.variant === 'tip' ? 'tip' : ''));
+        c.append(rich(b.body)); wrap.append(c);
+      }
+      else if (b.type === 'code') {
+        wrap.append(el('pre', b.code, 'lx-code'));
+        if (b.annotations && b.annotations.length) {
+          const ul = el('ul', undefined, 'lx-notes');
+          b.annotations.forEach(a => { const li = el('li'); li.append(rich('Linia ' + a.line + ': ' + a.text)); ul.append(li); });
+          wrap.append(ul);
+        }
+      }
+      else if (b.type === 'quiz') {
+        wrap.className += ' lx-quiz';
+        wrap.append(el('h3', b.question));
+        const result = el('p'); let done = false;
+        b.options.forEach((o, i) => {
+          const btn = el('button', o, 'lx-option');
+          btn.onclick = () => {
+            if (done) return;
+            const right = i === b.correct;
+            btn.classList.add(right ? 'right' : 'wrong');
+            result.textContent = (right ? 'Corect. ' : 'Nu chiar. ') + b.explanation;
+            result.className = right ? 'lx-ok' : 'lx-bad';
+            if (right) done = true;
+          };
+          wrap.append(btn);
+        });
+        wrap.append(result);
+      }
+      else if (b.type === 'task') {
+        wrap.className += ' lx-task';
+        wrap.append(el('h3', 'Practică'));
+        const p = el('p'); p.append(rich(b.prompt)); wrap.append(p);
+
+        const ta = el('textarea', undefined, 'lx-editor');
+        ta.value = b.starter_code; ta.spellcheck = false;
+        ta.addEventListener('keydown', (e) => {            // Tab = 4 spatii, nu iese din editor
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            const s = ta.selectionStart;
+            ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(ta.selectionEnd);
+            ta.selectionStart = ta.selectionEnd = s + 4;
+          }
+        });
+        wrap.append(ta);
+
+        const output = el('div', undefined, 'lx-output'); output.style.display = 'none';
+        const result = el('p');
+        const row = el('div', undefined, 'lx-row');
+        const runBtn = el('button', '▶ Rulează', 'btn-secondary');
+        const verifyBtn = el('button', '✔ Verifică', 'btn-primary');
+
+        const setBusy = (busy) => { runBtn.disabled = verifyBtn.disabled = busy; };
+        const showOut = (text, isErr) => {
+          output.style.display = ''; output.textContent = text; output.className = 'lx-output' + (isErr ? ' err' : '');
+        };
+
+        runBtn.onclick = async () => {
+          setBusy(true); result.textContent = '';
+          try {
+            const r = await api('/run', { method: 'POST', body: JSON.stringify({ code: ta.value }) });
+            if (r.compileError) showOut(r.compileError, true);
+            else if (r.ok) showOut(r.stdout || r.stderr || '(fără output)', !!r.stderr && !r.stdout);
+            else showOut(r.message || 'Eroare.', true);
+          } catch (e) { showOut('Nu pot contacta serverul.', true); }
+          setBusy(false);
+        };
+
+        verifyBtn.onclick = async () => {
+          setBusy(true); result.textContent = '';
+          try {
+            const r = await api('/lessons/' + lessonId + '/tasks/' + encodeURIComponent(b.task_key) + '/check',
+              { method: 'POST', body: JSON.stringify({ code: ta.value }) });
+            if (r.compileError) { showOut(r.compileError, true); result.textContent = 'Codul nu compilează.'; result.className = 'lx-bad'; }
+            else if (r.passed) {
+              result.textContent = r.lessonCompleted ? '🎉 Corect! Lecție terminată.' : 'Corect!';
+              result.className = 'lx-ok';
+              if (r.lessonCompleted) { const l = lessons.find(x => x.id === lessonId); if (l) l.completed = true; }
+            } else {
+              result.textContent = r.message || 'Încă nu.';
+              result.className = 'lx-bad';
+              if (r.yourOutput !== undefined) showOut('Output-ul tău:\n' + r.yourOutput, false);
+              if (r.stderr) showOut(r.stderr, true);
+            }
+          } catch (e) { result.textContent = 'Nu pot contacta serverul.'; result.className = 'lx-bad'; }
+          setBusy(false);
+        };
+
+        const hintBox = el('div'); let shown = 0;
+        const hintBtn = el('button', 'Arată indiciu', 'btn-secondary');
+        hintBtn.onclick = () => {
+          if (shown < b.hints.length) hintBox.append(el('div', 'Indiciu: ' + b.hints[shown++], 'lx-hint'));
+          if (shown >= b.hints.length) hintBtn.style.display = 'none';
+        };
+
+        row.append(runBtn, verifyBtn, hintBtn);
+        wrap.append(row, output, hintBox, result);
+      }
+      return wrap;
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>

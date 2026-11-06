@@ -8,7 +8,7 @@ function renderSidebar(role, activeKey) {
   const links = [
     { key: 'dashboard', href: dashboardUrl, icon: '🏠', label: 'Dashboard' },
     { key: 'classrooms', href: classroomsUrl, icon: '🏫', label: 'Classrooms' },
-    { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', icon: '📚', label: 'Cursuri' },
+    { key: 'cursuri', href: '/cursuri.html', icon: '📚', label: 'Cursuri' },
     { key: 'mesaje', href: '/coming-soon.html?f=Mesaje', icon: '💬', label: 'Mesaje' },
     { key: 'calendar', href: '/coming-soon.html?f=Calendar', icon: '📅', label: 'Calendar' },
     { key: 'fisiere', href: '/coming-soon.html?f=Fișierele mele', icon: '📁', label: 'Fișierele mele' },
@@ -34,7 +34,7 @@ function renderSidebar(role, activeKey) {
     const topLinks = [
       { key: 'dashboard', href: dashboardUrl, label: 'Dashboard' },
       { key: 'classrooms', href: classroomsUrl, label: 'Classrooms' },
-      { key: 'cursuri', href: '/coming-soon.html?f=Cursuri', label: 'Cursuri' }
+      { key: 'cursuri', href: '/cursuri.html', label: 'Cursuri' }
     ];
     topNav.innerHTML = topLinks.map(link => `
       <a href="${link.href}" class="top-link${link.key === activeKey ? ' active' : ''}">${link.label}</a>
