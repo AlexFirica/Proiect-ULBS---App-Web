@@ -2,7 +2,7 @@
 
 # `</>` Codero
 
-**Platformă de învățare pentru programare — clase virtuale, teme evaluate automat și compilator C++ integrat.**
+**Platformă de învățare pentru programare — clase virtuale, teme evaluate automat, modul de Antrenament C++ și compilator integrat.**
 
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
@@ -17,71 +17,72 @@
 
 ## Despre proiect
 
-**Codero** este o platformă web de tip *Google Classroom*, gândită special pentru predarea programării. Profesorii creează clase, publică teme cu teste ascunse și încarcă materiale; elevii se înscriu cu un cod de invitație, rezolvă temele direct în browser, într-un editor C++ cu compilare reală, și câștigă **XP** pentru soluțiile corecte.
+**Codero** este o platformă web educațională (de tip *Google Classroom*), concepută special pentru predarea și exersarea programării în limbajul C++. 
+
+Profesorii pot crea clase virtuale, distribui materiale și publica teme cu teste de evaluare automată. Elevii se înscriu prin coduri unice de invitație, rezolvă problemele într-un editor Monaco integrat cu compilare în timp real, participă la sesiuni de **Antrenament C++** și acumulează puncte de experiență (**XP**) pentru a urca în clasament.
 
 ## Funcționalități
 
 ### Pentru profesori
-- Creare de classroom-uri (Liceu, Opțional, Facultate, Bacalaureat) cu **cod de invitație** generat automat
-- Teme de programare cu **input și output așteptat**, deadline și recompensă XP configurabilă
-- Încărcare de materiale (PDF, imagini etc.) cu **previzualizare în aplicație**
-- Tabel cu elevii înscriși, XP și nivel, plus **clasament** pe classroom
-- Ștergere de classroom-uri și teme
+- **Gestiune clase:** Creare de classroom-uri (Liceu, Opțional, Facultate, Bacalaureat) cu generare automată de cod de invitație.
+- **Teme & Evaluare:** Creare de teme cu seturi de *input/output așteptat*, termene limită și recompense XP configurabile.
+- **Materiale de curs:** Încărcare de materiale (PDF, imagini etc.) salvate în Supabase Storage, cu previzualizare directă în interfață.
+- **Progres & Clasament:** Tabel complet cu elevii înscriși, punctajul XP acumulat, nivelul fiecăruia și clasamentul pe clasă.
+- **Administrare:** Ștergere și organizare de classroom-uri și teme.
 
 ### Pentru elevi
-- Înscriere într-o clasă prin cod de invitație
-- **Editor C++ (Monaco)** cu evidențiere de sintaxă, input personalizat și rulare de test
-- **Terminal de debug** pentru erorile reale de compilare
-- Evaluare automată la trimitere — XP acordat o singură dată, doar pentru soluții corecte
-- Sistem de **niveluri** și progress bar, clasament în clasă, indicator de deadline
-- Mod liber (Sandbox) pentru exersat cod fără a trimite o temă
+- **Înscriere simplă:** Alăturare în clase pe baza codului de invitație transmis de profesor.
+- **Editor C++ (Monaco):** Mediu de redactare cu evidențiere de sintaxă, rulare pe input customizat și compilare reală.
+- **Modul Antrenament C++:** Secțiune dedicată rezolvării de întrebări de sintaxă și concepte C++ cu verificare instantă și acumulare de XP.
+- **Terminal de Debug:** Afișare directă a erorilor și avertismentelor generate la compilare.
+- **Evaluare automată:** Validarea soluțiilor și acordarea XP-ului o singură dată per temă/întrebare rezolvată corect.
+- **Sistem de Gamification:** Calculare automată a nivelului, progress bar pentru experiență, clasamente live și indicatori de deadline.
+- **Mod Liber (Sandbox C++):** Compilator accesibil direct din sidebar pentru experimentat cod fără cerințe de temă.
 
-### Generale
-- Dashboard-uri separate pentru profesor și elev
-- **Dark / Light mode**, salvat între sesiuni
-- Notificări toast, loading skeleton, pagină 404 personalizată
-- Setări de cont: schimbare parolă, preferință de limbă
+### Generale & UI/UX
+- **Sistem i18n (Multilanguage):** Suport complet și comutare dinamică între **Română** și **Engleză** (detectare din localStorage / atribute HTML, sincronizare instantă în interfață).
+- **Sidebar & TopNav Dinamice:** Meniu lateral interactiv cu stări active, gestionare dinamică a avatarului utilizatorului și buton securizat de deconectare.
+- **Personalizare:** Dark / Light mode salvat per sesiune, notificări toast, efecte vizuale (confetti la finalizarea temelor), loading skeletons și pagină 404 personalizată.
+- **Setări cont:** Gestionare profil, schimbare parolă și selectare preferințe de limbă.
 
 ## Tehnologii
 
 | Strat | Tehnologii |
 |---|---|
-| **Frontend** | HTML, CSS, JavaScript (vanilla), Monaco Editor, canvas-confetti |
-| **Backend** | Node.js, Express |
-| **Baze de date** | Supabase (PostgreSQL, Auth, Storage) pentru clase, înscrieri și materiale · MongoDB (Mongoose) pentru utilizatori, teme și trimiteri |
-| **Execuție cod** | [Piston](https://github.com/engineer-man/piston), rulat local în Docker (sandbox izolat) |
-| **Autentificare** | JWT, hash de parole cu Argon2id |
+| **Frontend** | HTML, CSS, JavaScript (Vanilla ES6+), Monaco Editor, canvas-confetti, sistem i18n personalizat |
+| **Backend** | Node.js, Express.js |
+| **Baze de date** | **Supabase (PostgreSQL, Auth, Storage):** clase, profiluri, înscrieri, materiale de curs · **MongoDB (Mongoose):** utilizatori, teme, întrebări antrenament, trimiteri (submissions) |
+| **Execuție cod** | [Piston](https://github.com/engineer-man/piston) (container izolat Docker pentru compilare securizată C++) |
+| **Autentificare** | JWT (JSON Web Tokens), hash de parole cu Argon2id |
 
 ## Securitate
 
-- Parole stocate cu **Argon2id**
-- Autentificare pe bază de **JWT** (24h) și acces pe roluri (profesor / elev)
-- Descrierile temelor sunt **criptate AES-256-GCM**, iar integritatea lor e verificată cu **semnături ECC (P-256)**
-- **Rate limiting** pe login (5 încercări / 15 min), înregistrare și resetare de parolă
-- Codul elevilor rulează într-un **sandbox Docker** (Piston), cu limită de timp
+- **Criptare parole:** Stocare securizată a parolelor folosind **Argon2id**.
+- **Autentificare & Autorizare:** Token-uri **JWT** (valabilitate 24h) și middleware dedicat pentru controlul accesului pe roluri (`teacher` / `student`).
+- **Protecție date:** Descrierile temelor și resursele sensibile sunt criptate **AES-256-GCM** și verificate cu semnături **ECC (P-256)**.
+- **Rate Limiting:** Protecție împotriva atacurilor de tip brute-force pe rutele de login (max. 5 încercări / 15 min), înregistrare și resetare de parolă.
+- **Execuție securizată (Sandbox):** Codul C++ trimis de elevi rulează izolat în Docker prin Piston, având limite stricte de timp de execuție și memorie.
+
+---
 
 ## Instalare și rulare
 
-### Cerințe
+### Cerințe preliminare
 
-- Node.js 18+
-- MongoDB (local sau Atlas)
-- Cont [Supabase](https://supabase.com)
-- Docker Desktop
+- **Node.js** (v18 sau mai nou)
+- **MongoDB** (instanță locală sau MongoDB Atlas)
+- Cont **[Supabase](https://supabase.com)**
+- **Docker Desktop** (activ pentru compilatorul Piston)
 
-### 1. Clonare și instalare
+### 1. Clonare și instalare dependențe
 
 ```bash
 git clone <url-repository>
 cd <folder-proiect>/backend
 npm install
 ```
-
-### 2. Variabile de mediu
-
-Creează fișierul `backend/.env`:
-
-```env
+2. Configurare variabile de mediuCreează fișierul .env în directorul backend/:
+```
 PORT=3000
 MONGO_URI=mongodb://127.0.0.1:27017/codeedu
 JWT_SECRET=alege-un-secret-lung-si-random
@@ -91,44 +92,19 @@ FRONTEND_URL=http://localhost:3000
 PISTON_API_URL=http://localhost:2000/api/v2
 AES_SECRET=o-cheie-secreta-de-32-caractere
 ```
-
-| Variabilă | Descriere |
-|---|---|
-| `MONGO_URI` | Conexiunea la MongoDB |
-| `JWT_SECRET` | Secretul cu care se semnează token-urile JWT |
-| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Datele proiectului tău Supabase (cheia *service role* rămâne doar pe server) |
-| `PISTON_API_URL` | Adresa instanței Piston care compilează codul |
-| `AES_SECRET` | Cheia de criptare a descrierilor temelor (32 de caractere) |
-
-> ⚠️ Nu publica niciodată fișierul `.env` și nu comite chei în repository.
-
-### 3. Compilatorul (Piston, prin Docker)
-
-```bash
+VariabilăDescriereMONGO_URIString-ul de conexiune la instanța MongoDBJWT_SECRETSecretul utilizat pentru semnarea token-urilor de sesiuneSUPABASE_URL / SUPABASE_SERVICE_ROLE_KEYCredențialele Supabase (cheia service role se păstrează exclusiv pe backend)PISTON_API_URLAdresa endpoint-ului Piston (rulat local în Docker)AES_SECRETCheia secretă exact de 32 de caractere pentru criptarea AES⚠️ Atenție: Nu includeți fișierul .env în versiunile publice de Git!3. Pornire Container Compilator (Piston)Rulează instanța Piston în Docker:
+```
 docker volume create piston_data
 docker run -d --name piston_api -p 2000:2000 --privileged -v piston_data:/piston ghcr.io/engineer-man/piston
-```
-
-Instalează compilatorul C++ (o singură dată):
-
-```bash
-curl -X POST http://localhost:2000/api/v2/packages \
+Instalează pachetul de compilare pentru C++ (gcc 10.2.0):curl -X POST http://localhost:2000/api/v2/packages \
   -H "Content-Type: application/json" \
   -d '{"language":"gcc","version":"10.2.0"}'
 ```
+(Pe Windows PowerShell folosește curl.exe sau Invoke-RestMethod).
+4. Configurare Bază de Date SupabaseCreează tabelele principale în Supabase SQL Editor:-- Enum pentru tipul de classroom
+create type classroom_type as enum ('liceu', 'optional', 'club', 'bacalaureat');
 
-> Pe Windows PowerShell folosește `curl.exe` sau `Invoke-RestMethod` în loc de `curl`.
-
-### 4. Baza de date Supabase
-
-Tabelele necesare: `profiles`, `teacher_profiles`, `student_profiles`, `classrooms`, `classroom_students`, `course_materials`.
-
-Tipul enum `classroom_type` acceptă valorile: `liceu`, `optional`, `club`, `bacalaureat`.
-
-<details>
-<summary>SQL pentru tabelele <code>classroom_students</code> și <code>course_materials</code></summary>
-
-```sql
+-- Tabela pentru înscrieri elevi în clase
 create table classroom_students (
   id uuid primary key default gen_random_uuid(),
   classroom_id uuid references classrooms(id) on delete cascade,
@@ -137,6 +113,7 @@ create table classroom_students (
   unique (classroom_id, student_id)
 );
 
+-- Tabela pentru materiale de curs
 create table course_materials (
   id uuid primary key default gen_random_uuid(),
   classroom_id uuid references classrooms(id) on delete cascade,
@@ -146,58 +123,28 @@ create table course_materials (
   uploaded_by uuid references teacher_profiles(id),
   created_at timestamptz default now()
 );
-```
-
-</details>
-
-Creează în Supabase Storage un bucket **public** numit `course-materials`.
-
-### 5. Pornirea serverului
-
-```bash
-cd backend
+Creează în Supabase Storage un bucket public numit course-materials pentru încărcarea fișierelor.5. Pornire Server Backendcd backend
 node src/server.js
-```
-
-Aplicația rulează la **http://localhost:3000**.
-
-### 6. Primii pași
-
-1. Deschide `/login.html` și creează un cont de **Profesor**
-2. Creează un classroom și copiază codul de invitație
-3. Creează un al doilea cont, de **Elev**, și înscrie-l în clasă cu acel cod
-4. Ca profesor, adaugă o temă cu input și output așteptat; ca elev, rezolv-o în editor
-
-## Structura proiectului
-
-```
+Aplicația va fi accesibilă în browser la adresa: http://localhost:3000.
+6. Fluxul rapid de testareNavighează la /login.html și înregistrează un cont de Profesor.Creează un classroom nou și copiază codul de invitație generat.Deschide o fereastră Incognito / alt browser, înregistrează un cont de Elev și înscrie-te în clasă folosind codul.Ca profesor, adaugă o temă nouă cu teste de input/output; ca elev, rezolvă problema în editorul Monaco sau încearcă modulul de Antrenament C++.
+Structura proiectului
 backend/
 ├── src/
-│   ├── controllers/   # logica de business (auth, classroom, homework, material)
-│   ├── routes/        # rutele Express
-│   ├── middleware/    # autentificare JWT, roluri, rate limiting
-│   ├── models/        # scheme Mongoose (User, Homework, Submission)
-│   ├── config/        # conexiunea Supabase
-│   ├── Utils/         # criptare AES și semnături ECC
-│   └── server.js
+│   ├── controllers/   # Logica de business (auth, classroom, homework, material, training)
+│   ├── routes/        # Rutele Express (API REST)
+│   ├── middleware/    # Autentificare JWT, verificare roluri, rate limiting
+│   ├── models/        # Scheme Mongoose (User, Homework, Submission, Question)
+│   ├── config/        # Conexiuni MongoDB & Supabase
+│   ├── Utils/         # Utilitare criptare AES-256 și semnături ECC
+│   └── server.js      # Punctul de intrare în aplicație
 frontend/
 └── public/
     ├── login.html
     ├── dashboard-teacher.html / dashboard-student.html
     ├── classrooms-teacher.html / classrooms-student.html
+    ├── antrenament.html        # Pagina modulului de Antrenament C++
     ├── settings.html · coming-soon.html · 404.html
-    ├── js/            # logica fiecărei pagini (+ sidebar, toast, temă)
-    └── css/           # dashboard, theme (dark mode), polish
-```
-## Planuri de viitor
+    ├── js/                    # Logica client (sidebar.js, i18n, toast, avatar-icon.js)
+    └── css/                   # Stiluri UI, Dark Mode & Layouts
 
-- [ ] Sistem de niveluri individuale, cu deblocarea altor limbaje de programare în compilator
-- [ ] Nivel de classroom, cumulat cu cel individual
-- [ ] Traducere completă RO/EN
-- [ ] Mesagerie și calendar
-- [ ] Editare de teme și classroom-uri
-- [ ] Trimitere reală de emailuri (resetare parolă, verificare cont)
-
-## Licență
-
-Proiect realizat în scop educațional (ULBS).
+Proiect dezvoltat în scop educațional în cadrul Universității „Lucian Blaga” din Sibiu (ULBS).
