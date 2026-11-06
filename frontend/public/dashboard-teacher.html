@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -9,6 +8,7 @@
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/polish.css">
   <script src="/js/theme-toggle.js"></script>
+  <script src="/js/i18n.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -123,18 +123,20 @@
             <ul class="quick-actions">
               <li><button class="action-btn" id="creeaza_classroom3">➕ Creează classroom</button></li>
               <li><button class="action-btn" id="quick-add-material-btn">📤 Încarcă material</button></li>
-              <li><button class="action-btn" onclick="window.location.href='/coming-soon.html?f=Calendar'">📅 Vezi calendar</button></li>
+              <li><button class="action-btn" onclick="window.location.href='/calendar.html'">📅 Vezi calendar</button></li>
             </ul>
           </div>
 
           <div class="widget-box">
             <div class="widget-header">
               <h4>Calendar</h4>
-              <a href="/coming-soon.html?f=Calendar" class="link-small">Vezi tot</a>
+              <a href="/calendar.html" class="link-small">Vezi tot</a>
             </div>
-            <div class="empty-widget-state">
-              <p>Nu ai nicio activitate programată.</p>
-            </div>
+              <div id="calendar-widget-body">
+                <div class="empty-widget-state">
+                  <p>Se încarcă...</p>
+                </div>
+              </div>
           </div>
 
           <div class="widget-box">
@@ -269,10 +271,89 @@
     </div>
   </div>
 
-  <!-- MODAL ADĂUGARE TEMĂ -->
+  <!-- MODAL ADĂUGARE TEMĂ (CU GENERATOR AI & OPȚIUNE CURS) -->
   <div id="add-homework-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1100; align-items:center; justify-content:center;">
-    <div style="background:white; width:90%; max-width:480px; border-radius:12px; padding:24px; max-height:88vh; overflow-y:auto;">
+    <div style="background:white; width:90%; max-width:520px; border-radius:12px; padding:24px; max-height:88vh; overflow-y:auto;">
       <h3 style="margin-top:0;">Adaugă temă nouă</h3>
+
+      <!-- TABURI: CATALOG / MANUAL -->
+      <div style="display:flex; gap:6px; margin-bottom:14px; border-bottom:1px solid #e2e8f0;">
+        <button type="button" class="hw-tab active" data-hwtab="catalog" style="padding:8px 14px; border:none; background:none; cursor:pointer; font-weight:600; font-size:13px; border-bottom:2px solid #4f46e5; color:#4f46e5;">📚 Din catalog (C++ liceu)</button>
+        <button type="button" class="hw-tab" data-hwtab="manual" style="padding:8px 14px; border:none; background:none; cursor:pointer; font-weight:600; font-size:13px; border-bottom:2px solid transparent; color:#64748b;">✍️ Manuală / AI</button>
+      </div>
+
+      <!-- PANOU CATALOG: profesorul alege exercițiul din Supabase -->
+      <div id="hw-catalog-pane">
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <select id="cat-chapter" style="flex:2; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+            <option value="">Toate capitolele</option>
+          </select>
+          <select id="cat-difficulty" style="flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+            <option value="">Orice dificultate</option>
+            <option value="1">★ Ușor</option>
+            <option value="2">★★ Mediu</option>
+            <option value="3">★★★ Dificil</option>
+          </select>
+        </div>
+        <input type="text" id="cat-search" placeholder="🔎 Caută exercițiu după titlu..." style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-size:13px;">
+
+        <div id="cat-list" style="max-height:210px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:12px;">
+          <div style="padding:16px; text-align:center; color:#94a3b8; font-size:13px;">Se încarcă catalogul...</div>
+        </div>
+
+        <div id="cat-preview" hidden style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong id="cat-preview-title" style="font-size:14px; color:#1e293b;"></strong>
+            <span id="cat-preview-meta" style="font-size:11px; color:#64748b;"></span>
+          </div>
+          <pre id="cat-preview-desc" style="margin:0; white-space:pre-wrap; font-family:inherit; font-size:12.5px; color:#475569; max-height:170px; overflow-y:auto; line-height:1.45;"></pre>
+          <div style="margin-top:8px; font-size:12px; color:#64748b;">🔒 Testele sunt ascunse elevilor. Tema se evaluează automat prin compilator.</div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:14px;">
+          <div style="flex:1;">
+            <label style="font-size:13px; color:#64748b;">XP oferit</label>
+            <input type="number" id="cat-xp" value="10" min="0" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+          </div>
+          <div style="flex:2;">
+            <label style="font-size:13px; color:#64748b;">Termen limită</label>
+            <input type="datetime-local" id="cat-deadline" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" id="cat-cancel-btn" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
+          <button type="button" id="cat-assign-btn" disabled style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer; opacity:0.5;">Atribuie clasei</button>
+        </div>
+      </div>
+
+      <!-- PANOU MANUAL (formularul existent: AI, șabloane, câmpuri libere) -->
+      <div id="hw-manual-pane" hidden>
+
+      <!-- SECȚIUNE AI: GENERARE RAPIDĂ -->
+      <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 14px; border-radius: 10px; margin-bottom: 14px; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">
+        <label style="font-size:13px; font-weight:bold; display:block; margin-bottom:6px; color: #fef08a;">✨ Generează cerință & teste cu AI:</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="ai-prompt-input" placeholder="ex: Problemă cu vectori de nivel mediu pentru BAC" style="flex:1; padding:9px 12px; border-radius:6px; border:none; font-size:13px; outline:none;" />
+          <button type="button" id="ai-generate-btn" onclick="generateHomeworkWithAI()" style="background:#f59e0b; color:white; border:none; padding:9px 14px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; transition:0.2s;">Generează</button>
+        </div>
+        <small id="ai-loading-text" style="display:none; color:#fef08a; margin-top:8px; font-size:12px;">⏳ AI-ul creează problema și seturile de testare...</small>
+      </div>
+
+      <!-- SECȚIUNE OPȚIONALĂ: ALEGERE DIN CURS -->
+      <div style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:14px; border:1px solid #cbd5e1;">
+        <label style="font-size:13px; font-weight:bold; color:#1e293b; display:block; margin-bottom:6px;">⚡ Sau alege o temă predefinită din curs:</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <select id="hw-template-chapter" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+            <option value="">-- Pasul 1: Alege Capitol --</option>
+          </select>
+          <select id="hw-template-select" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;" disabled>
+            <option value="">-- Pasul 2: Alege Temă --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- FORMULAR STANDARD TEMĂ -->
       <input type="text" id="hw-title" placeholder="Titlul temei" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;">
       <textarea id="hw-description" placeholder="Descriere" rows="3" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box;"></textarea>
       <label style="font-size:13px; color:#64748b;">Date de intrare (Input test)</label>
@@ -286,6 +367,32 @@
       <div style="display:flex; gap:8px; justify-content:flex-end;">
         <button id="hw-cancel-btn" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:6px; cursor:pointer;">Anulează</button>
         <button id="hw-save-btn" style="padding:8px 16px; border:none; background:#4f46e5; color:white; border-radius:6px; cursor:pointer;">Salvează tema</button>
+      </div>
+      </div><!-- /hw-manual-pane -->
+    </div>
+  </div>
+
+  <!-- MODAL CATALOG NOTE ELEVI PER TEMĂ -->
+  <div id="grades-modal" hidden style="position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:1150; align-items:center; justify-content:center;">
+    <div style="background:white; width:92%; max-width:820px; max-height:85vh; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="padding:16px 20px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; background:#1e293b; color:white;">
+        <h3 id="gm-title" style="margin:0; font-size:17px;">📊 Catalog Note - Temă</h3>
+        <button id="gm-close-btn" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">&times;</button>
+      </div>
+      <div style="padding:20px; overflow-y:auto; flex:1;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="text-align:left; border-bottom:2px solid #e2e8f0; color:#64748b; background:#f8fafc;">
+              <th style="padding:10px 8px;">Elev</th>
+              <th style="padding:10px 8px;">Email</th>
+              <th style="padding:10px 8px;">Status Evaluare</th>
+              <th style="padding:10px 8px;">Teste</th>
+              <th style="padding:10px 8px;">Notă</th>
+              <th style="padding:10px 8px;">Cod Trimis</th>
+            </tr>
+          </thead>
+          <tbody id="gm-tbody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -308,10 +415,12 @@
   <script src="/js/toast.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-teacher.js"></script>
+  <script src="/js/calendar-widget.js"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
   <script>
     let monacoEditorInstance = null;
     let currentActiveHomeworkId = null;
+    let templatesCatalogData = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       const closeEditorBtn = document.getElementById('close-editor-btn');
@@ -322,6 +431,14 @@
       const editorConsole = document.getElementById('editor-console');
       const homeworkTitleText = document.getElementById('homework-title-text');
       const homeworkDescText = document.getElementById('homework-desc-text');
+
+      // Modal catalog note
+      const gmModal = document.getElementById('grades-modal');
+      const gmCloseBtn = document.getElementById('gm-close-btn');
+      if (gmCloseBtn) gmCloseBtn.addEventListener('click', () => gmModal.style.display = 'none');
+
+      // Încărcare teme predefinite din curs în modalul de adăugare temă
+      loadCourseTemplatesInModal();
 
       const params = new URLSearchParams(window.location.search);
       if (params.get('openSandbox') === '1') {
@@ -416,6 +533,165 @@
       });
     });
 
+    // Funcție generare temă folosind AI (LLM API)
+    async function generateHomeworkWithAI() {
+      const promptInput = document.getElementById('ai-prompt-input');
+      const promptText = promptInput ? promptInput.value.trim() : '';
+      const loadingText = document.getElementById('ai-loading-text');
+      const btn = document.getElementById('ai-generate-btn');
+
+      if (!promptText) {
+        alert('Scrie o scurtă cerință în căsuța AI (ex: "Problemă cu matrice de dificultate ușoară").');
+        return;
+      }
+
+      btn.disabled = true;
+      loadingText.style.display = 'block';
+
+      try {
+        const response = await fetch('/api/teacher/generate-ai-homework', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ prompt: promptText })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          document.getElementById('hw-title').value = data.title || '';
+          document.getElementById('hw-description').value = data.description || '';
+          document.getElementById('hw-xp').value = data.rewardXp || 20;
+
+          if (data.testCases && data.testCases.length > 0) {
+            document.getElementById('hw-testinput').value = data.testCases[0].input || '';
+            document.getElementById('hw-expectedoutput').value = data.testCases[0].output || '';
+          }
+          
+          if (typeof showToast === 'function') {
+            showToast('✨ Tema a fost generată cu succes de AI!', 'success');
+          }
+        } else {
+          alert(data.message || 'Eroare la generarea temei cu AI.');
+        }
+      } catch (err) {
+        alert('Eroare de conexiune la generarea cu AI.');
+      } finally {
+        btn.disabled = false;
+        loadingText.style.display = 'none';
+      }
+    }
+
+    // Încărcare capitole și șabloane în dropdown-uri
+    async function loadCourseTemplatesInModal() {
+      try {
+        const res = await fetch('/api/teacher/course-templates', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!res.ok) return;
+        templatesCatalogData = await res.json();
+
+        const capSelect = document.getElementById('hw-template-chapter');
+        const tmplSelect = document.getElementById('hw-template-select');
+        if (!capSelect || !tmplSelect) return;
+
+        capSelect.innerHTML = '<option value="">-- Pasul 1: Alege Capitol --</option>';
+        (templatesCatalogData.capitole || []).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.nume;
+          capSelect.appendChild(opt);
+        });
+
+        capSelect.onchange = () => {
+          const capId = capSelect.value;
+          tmplSelect.innerHTML = '<option value="">-- Pasul 2: Alege Temă --</option>';
+          tmplSelect.disabled = !capId;
+          if (!capId) return;
+
+          const cap = (templatesCatalogData.capitole || []).find(c => c.id === capId);
+          if (cap) {
+            (cap.teme || []).forEach(t => {
+              const opt = document.createElement('option');
+              opt.value = t.id;
+              opt.textContent = `${t.title} (+${t.rewardCoins || 50} 🪙)`;
+              tmplSelect.appendChild(opt);
+            });
+          }
+        };
+
+        tmplSelect.onchange = () => {
+          const capId = capSelect.value;
+          const tmplId = tmplSelect.value;
+          if (!capId || !tmplId) return;
+
+          const cap = (templatesCatalogData.capitole || []).find(c => c.id === capId);
+          const tmpl = (cap.teme || []).find(t => t.id === tmplId);
+
+          if (tmpl) {
+            document.getElementById('hw-title').value = tmpl.title || '';
+            document.getElementById('hw-description').value = tmpl.description || '';
+            document.getElementById('hw-xp').value = tmpl.rewardXp || 10;
+
+            const firstTc = (tmpl.testCases && tmpl.testCases[0]) || {};
+            document.getElementById('hw-testinput').value = firstTc.input || '';
+            document.getElementById('hw-expectedoutput').value = firstTc.output || '';
+          }
+        };
+      } catch (e) {
+        console.warn('Nu s-au putut încărca șabloanele din curs.', e);
+      }
+    }
+
+    // Funcție deschidere catalog cu notele elevilor pentru o temă
+    window.openHomeworkGradesModal = async function(homeworkId) {
+      const modal = document.getElementById('grades-modal');
+      const titleEl = document.getElementById('gm-title');
+      const tbody = document.getElementById('gm-tbody');
+      modal.style.display = 'flex';
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:16px; text-align:center;">Se încarcă catalogul...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/teacher/homework/${homeworkId}/grades`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Eroare la încărcare');
+
+        titleEl.textContent = `📊 Catalog Note: ${data.homeworkTitle}`;
+        tbody.innerHTML = '';
+
+        if (!data.report || !data.report.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="padding:16px; text-align:center; color:#94a3b8;">Niciun elev înscris în această clasă.</td></tr>';
+          return;
+        }
+
+        data.report.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f1f5f9';
+
+          const statusColor = row.status === 'ACCEPTED' ? '#16a34a' : (row.submitted ? '#dc2626' : '#94a3b8');
+          const gradeBadge = row.grade !== '-' ? `<span style="background:#312e81; color:#fbbf24; font-weight:bold; padding:3px 10px; border-radius:12px;">${row.grade}</span>` : '-';
+
+          tr.innerHTML = `
+            <td style="padding:10px 8px; font-weight:600;">${row.name}</td>
+            <td style="padding:10px 8px; color:#64748b;">${row.email}</td>
+            <td style="padding:10px 8px;"><span style="color:${statusColor}; font-weight:bold;">${row.status}</span></td>
+            <td style="padding:10px 8px;">${row.passedTests} / ${row.totalTests}</td>
+            <td style="padding:10px 8px;">${gradeBadge}</td>
+            <td style="padding:10px 8px;">
+              ${row.code ? `<button onclick="alert('Cod trimis:\\n\\n' + decodeURIComponent('${encodeURIComponent(row.code)}'))" style="background:#4f46e5; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:12px;">👁️ Vezi cod</button>` : '<em style="color:#cbd5e1;">-</em>'}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="padding:16px; text-align:center; color:#ef4444;">Eroare: ${err.message}</td></tr>`;
+      }
+    };
+
     function initMonaco() {
       if (!monacoEditorInstance) {
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
@@ -456,5 +732,7 @@
       }
     };
   </script>
+  <script src="/js/avatar-icon.js"></script>
+  <script src="/js/exercise-catalog.js"></script>
 </body>
 </html>

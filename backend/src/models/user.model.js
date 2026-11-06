@@ -29,10 +29,42 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'cursant'
     },
+
+    // --- GAMIFICARE & AVATAR ---
     xp: {
       type: Number,
       default: 0
     },
+    level: {
+      type: Number,
+      default: 1
+    },
+    coins: {
+      type: Number,
+      default: 500
+    },
+    ownedItems: {
+      type: [String],
+      default: []
+    },
+    streak: {
+      type: Number,
+      default: 0
+    },
+    lastDailyClaim: {
+      type: String, // Format salvat: "YYYY-MM-DD"
+      default: ''
+    },
+    avatar: {
+      type: mongoose.Schema.Types.Mixed, // Stochează obiectul JSON: { equip: {...}, skin, hairColor, bg }
+      default: null
+    },
+    avatarUrl: {
+      type: String,
+      default: ''
+    },
+    // ---------------------------
+
     isVerified: {
       type: Boolean,
       default: false
@@ -42,18 +74,25 @@ const userSchema = new mongoose.Schema(
     resetTokenExpires: Date,
     refreshToken: String
   },
-  { timestamps: true }
+  { 
+    timestamps: true,
+    minimize: false // Garantează că obiectele goale din avatar nu sunt șterse la salvare
+  }
 );
 
 // Hook pre-save async: hash-uiește parola doar dacă a fost modificată
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
 
-  this.password = await argon2.hash(this.password, {
-    type: argon2.argon2id,
-    memoryCost: 2 ** 16,
-    timeCost: 3
-  });
+  try {
+    this.password = await argon2.hash(this.password, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16,
+      timeCost: 3
+    });
+  } catch (error) {
+    throw new Error('Eroare la criptarea parolei: ' + error.message);
+  }
 });
 
 // Verificare parolă la login

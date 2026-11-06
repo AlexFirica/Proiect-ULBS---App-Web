@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -9,6 +8,7 @@
   <link rel="stylesheet" href="/css/theme.css">
   <link rel="stylesheet" href="/css/polish.css">
   <script src="/js/theme-toggle.js"></script>
+  <script src="/js/i18n.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -134,18 +134,20 @@
             <ul class="quick-actions">
               <li><button class="action-btn" id="quick-join-btn">🔑 Intră într-o clasă</button></li>
               <li><button class="action-btn" onclick="document.getElementById('open-editor-btn').click()">💻 Deschide compilator</button></li>
-              <li><button class="action-btn" onclick="window.location.href='/coming-soon.html?f=Calendar'">📅 Vezi calendar</button></li>
+              <li><button class="action-btn" onclick="window.location.href='/calendar.html'">📅 Vezi calendar</button></li>
             </ul>
           </div>
 
           <div class="widget-box">
             <div class="widget-header">
               <h4>Calendar</h4>
-              <a href="/coming-soon.html?f=Calendar" class="link-small">Vezi tot</a>
+              <a href="/calendar.html" class="link-small">Vezi tot</a>
             </div>
-            <div class="empty-widget-state">
-              <p>Nu ai nicio activitate programată.</p>
-            </div>
+              <div id="calendar-widget-body">
+                <div class="empty-widget-state">
+                  <p>Se încarcă...</p>
+                </div>
+              </div>
           </div>
 
           <div class="widget-box">
@@ -270,6 +272,7 @@
   <script src="/js/toast.js"></script>
   <script src="/js/sidebar.js"></script>
   <script src="/js/dashboard-student.js"></script>
+  <script src="/js/calendar-widget.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
   <script>
     let monacoEditorInstance = null;
@@ -419,5 +422,8 @@
       }
     };
   </script>
+
+  <!-- iconița de profil = avatar (script partajat cu dashboard-teacher) -->
+  <script src="/js/avatar-icon.js"></script>
 </body>
 </html>
